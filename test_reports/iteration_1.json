@@ -1,0 +1,34 @@
+{
+  "summary": "Full stack testing completed for BAD FORM Trades IMS. Backend smoke suite (/app/tests/smoke.py, 41 checks) previously passed. This iteration validated the CC UI (login, day board, quotes, jobs, job detail with margin tokens, inbox, ledger, modules, directory), Field PWA (PIN 1234/2345 login, PIN isolation confirmed, job sheet bottom bar with capture/hours/extra/pack, VO create form), public /q/{token} accept flow (JOB-005 created), and public /s/{token} sign flow (VARIATION SIGNED, mail_outbox row queued). Auth: bad password stays on /login (backend returns 401 as expected). Demo banner visible in CC and Field. All required data-testid selectors present. One minor backend validation gap found: POST /api/quotes returns 500 (KeyError) when required fields client_id or lines[].description are missing — should return 400 with clear message. Frontend Quotes.jsx sends the correct schema so real UI usage is unaffected.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/quotes", "issue": "Returns 500 with raw KeyError when 'client_id' or line 'description' is missing. Should validate with Pydantic and return 400. Frontend uses correct schema so users are not affected, but API contract is fragile."},
+      {"endpoint": "React hydration warning", "issue": "<span> child inside <option> in DayBoard.jsx line 71 (jobs code render) causes React hydration warning. Cosmetic only; functionality unaffected."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/tests/smoke.py", "/app/test_reports/iteration_1.json"],
+  "action_items": [
+    "Add Pydantic request models (or explicit 400 validation) to POST /api/quotes to avoid 500s when payload is malformed.",
+    "Remove the <span data-ve-dynamic> wrapper inside <option> in /app/frontend/src/cc/DayBoard.jsx line 71 to eliminate the React hydration warning (this is likely an Emergent visual-editor instrumentation artefact; option children must be plain text)."
+  ],
+  "critical_code_review_comments": [
+    "Backend endpoints access body dict keys directly (body['client_id'], body['description']) — should use Pydantic BaseModel schemas across routes_cc.py for consistent 400 validation and self-documenting API.",
+    "svc.py, routes_cc.py rely on ad-hoc `clean()` helpers to strip non-JSON types; consider a shared serializer or Pydantic response models to avoid drift.",
+    "Field VO code correctly enforces first-wins (409 on second sign via any path) — good invariant.",
+    "Deposit drafts remain pending_push (never auto-pushed) — verified via smoke and consistent with product requirement."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (41/41 smoke + all UI-triggered flows)", "frontend": "100% of tested flows"},
+  "test_credentials": "Used per /app/memory/test_credentials.md: owner.elec@demo.badform.invalid/DemoOwner!elec, owner.conc@demo.badform.invalid/DemoOwner!conc, Field PINs 1234/2345.",
+  "seed_data_creation": "Created Q-003 (accepted → JOB-005) and Q-004 (declined) via API for public flow tests; VO-003 (signed via public /s/) on JOB-001. State is mutated — subsequent runs should create fresh quotes/VOs rather than assume Q-003/JOB-005 do not exist.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Fixtures further mutated: Q-003 accepted -> JOB-005 (electrical), Q-004 declined, VO-003 signed (public canvas path exhausted for its token). Deposit drafts on concrete Q-001 already pending_push from smoke.py. Use dynamic lookups (list quotes / next code) rather than expecting Q-00N numbers. AI extraction (~5-15s) not exercised in this UI iteration — inbox already had >=3 seeded needs_verify items which are sufficient for verify/reject UI tests.",
+  "rca of the issue": "POST /api/quotes 500: routes_cc.py line 183 and 187 read body['client_id'] and ln['description'] without validation; when caller omits either, Python raises KeyError which FastAPI converts to a 500. Fix: define QuoteCreate/QuoteLine Pydantic models with required fields."
+}
