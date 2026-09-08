@@ -78,7 +78,8 @@ async def capture(jid: str, file: UploadFile = File(...), kind: str = Form("dock
         return {"deduped": True}
     data = await file.read()
     mime = file.content_type or "image/jpeg"
-    ext = "webm" if kind == "voice_note" else "jpg"
+    AUDIO_EXT = {"audio/mpeg": "mp3", "audio/mp3": "mp3", "audio/mp4": "m4a", "audio/x-m4a": "m4a", "audio/wav": "wav", "audio/x-wav": "wav"}
+    ext = AUDIO_EXT.get(mime, "webm") if kind == "voice_note" else "jpg"
     if kind != "voice_note":
         data = svc.compress_image(data)
         mime = "image/jpeg"
@@ -88,10 +89,15 @@ async def capture(jid: str, file: UploadFile = File(...), kind: str = Form("dock
     doc = await svc.add_document(u["org_id"], jid, kind, path, mime, u["id"])
     ext_row = None
     if kind == "voice_note":
+        with tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False) as t:
+            t.write(data); tmp = t.name
+        result = await extractor.transcribe_voice(tmp)
+        os.unlink(tmp)
+        extracted = {"source": "voice_note", "crew": u["name"], **result}
         ext_row = await db.fetchrow(
             """INSERT INTO docket_extractions (org_id, document_id, job_id, status, kind, extracted)
                VALUES ($1,$2,$3,'needs_verify','timesheet_voice',$4) RETURNING id, status""",
-            u["org_id"], doc["id"], jid, {"source": "voice_note", "crew": u["name"]})
+            u["org_id"], doc["id"], jid, extracted)
     if kind == "docket_photo":
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as t:
             t.write(data); tmp = t.name
@@ -176,24 +182,42 @@ async def send_variation(vid: str, body: dict = Body(default={}), u=Depends(anyu
     await svc.queue_mail(u["org_id"], to_email, f"Sign variation {v['code']} — {j['code']}", "variation_send", v["id"])
     return {"send_id": str(send["id"]), "sign_path": f"/s/{tok}", "to_email": to_email}
 
+async def _store_cert(u, j, name, data):
+    path = svc.save_bytes(u["org_id"], data, "pdf", "application/pdf")
+    doc = await svc.add_document(u["org_id"], j["id"], "cert_pdf", path, "application/pdf", u["id"], meta={"name": name})
+    client = await db.fetchrow("SELECT * FROM clients WHERE id=$1", j["bill_to_client_id"] or j["client_id"])
+    to_email = client and client.get("email")
+    cert = await db.fetchrow(
+        """INSERT INTO certificates (org_id, job_id, name, document_id, emailed_to, emailed_at, status)
+           VALUES ($1,$2,$3,$4,$5, CASE WHEN $5::text IS NULL THEN NULL ELSE now() END, $6) RETURNING id, status""",
+        u["org_id"], j["id"], name, doc["id"], to_email, "queued" if to_email else "stored")
+    if to_email:
+        await svc.queue_mail(u["org_id"], to_email, f"Certificate — {name} — {j['code']}", "certificate", cert["id"])
+    return {"certificate_id": str(cert["id"]), "document_id": str(doc["id"]),
+            "status": cert["status"], "emailed_to": to_email}
+
 @r.post("/field/jobs/{jid}/certs")
 async def upload_cert(jid: str, file: UploadFile = File(...), name: str = Form(...), u=Depends(crew)):
     j = await _job_for(u, jid)
     if not (file.content_type or "").endswith("pdf"):
         raise HTTPException(400, "Certificate must be a PDF")
     data = await file.read()
-    path = svc.save_bytes(u["org_id"], data, "pdf", "application/pdf")
-    doc = await svc.add_document(u["org_id"], jid, "cert_pdf", path, "application/pdf", u["id"], meta={"name": name})
-    client = await db.fetchrow("SELECT * FROM clients WHERE id=$1", j["bill_to_client_id"] or j["client_id"])
-    to_email = client and client.get("email")
-    cert = await db.fetchrow(
-        """INSERT INTO certificates (org_id, job_id, name, document_id, emailed_to, emailed_at, status)
-           VALUES ($1,$2,$3,$4,$5, CASE WHEN $5::text IS NULL THEN NULL ELSE now() END, $6) RETURNING id, status""",
-        u["org_id"], jid, name, doc["id"], to_email, "queued" if to_email else "stored")
-    if to_email:
-        await svc.queue_mail(u["org_id"], to_email, f"Certificate — {name} — {j['code']}", "certificate", cert["id"])
-    return {"certificate_id": str(cert["id"]), "document_id": str(doc["id"]),
-            "status": cert["status"], "emailed_to": to_email}
+    return await _store_cert(u, j, name, data)
+
+@r.post("/field/jobs/{jid}/certs/form")
+async def cert_from_form(jid: str, body: dict = Body(...), u=Depends(crew)):
+    j = await _job_for(u, jid)
+    name = (body.get("name") or "").strip() or "Electrical Safety Certificate"
+    if not body.get("cert_no"):
+        raise HTTPException(400, "cert_no is required")
+    org = await svc.get_org(u["org_id"])
+    client = await db.fetchrow("SELECT * FROM clients WHERE id=$1", j["client_id"])
+    site = await db.fetchrow("SELECT * FROM sites WHERE id=$1", j["site_id"]) if j["site_id"] else None
+    form = {k: body.get(k) for k in ("name", "cert_no", "description", "visual", "earth_continuity", "insulation_mohm", "rcd_ms", "polarity", "result")}
+    form["name"] = name
+    data = svc.render_pdf(u["org_id"], pdfs.cert_pdf, org, j, client, site, form, u["name"])
+    res = await _store_cert(u, j, f"{name} {body['cert_no']}", data)
+    return res
 
 @r.get("/field/jobs/{jid}/pack.pdf")
 async def job_pack(jid: str, auth_q: str = Query(None, alias="auth"), authorization: str = Header(None)):

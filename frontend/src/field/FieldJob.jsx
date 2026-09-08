@@ -146,9 +146,26 @@ const CaptureSheet = ({ jobId, onClose, onQueue }) => {
 };
 
 const CertSheet = ({ jobId, d, onClose }) => {
-  const [name, setName] = useState("");
+  const [tab, setTab] = useState("form");
+  const [name, setName] = useState("Electrical Safety Certificate");
   const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({ cert_no: "", description: "", visual: "pass", earth_continuity: "pass", insulation_mohm: "", rcd_ms: "", polarity: "pass", result: "pass" });
   const fileRef = useRef();
+
+  const done = (data) => {
+    toast.success(data.emailed_to ? `CERT STORED + QUEUED TO ${data.emailed_to} — GOES OUT WITH THE PACK` : "CERT STORED — CLIENT HAS NO EMAIL, IT RIDES IN THE PACK");
+    onClose();
+  };
+
+  const submitForm = async () => {
+    if (!form.cert_no.trim()) return toast.error("CERT NO REQUIRED");
+    setBusy(true);
+    try {
+      const { data } = await fx.post(`/field/jobs/${jobId}/certs/form`, { name, ...form });
+      done(data);
+    } catch (e) { toast.error(errMsg(e)); }
+    setBusy(false);
+  };
 
   const onFile = async (e) => {
     const f = e.target.files?.[0];
@@ -160,20 +177,51 @@ const CertSheet = ({ jobId, d, onClose }) => {
       fd.append("file", f);
       fd.append("name", name);
       const { data } = await fx.post(`/field/jobs/${jobId}/certs`, fd);
-      toast.success(data.emailed_to ? `CERT STORED + QUEUED TO ${data.emailed_to} — GOES OUT WITH THE PACK` : "CERT STORED — CLIENT HAS NO EMAIL, IT RIDES IN THE PACK");
-      onClose();
+      done(data);
     } catch (e2) { toast.error(errMsg(e2)); }
     setBusy(false);
   };
 
+  const PF = ({ k }) => (
+    <select className="bf-input" data-testid={`cert-${k}-select`} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })}>
+      <option value="pass">PASS</option><option value="fail">FAIL</option><option value="n/a">N/A</option>
+    </select>
+  );
+
   return (
-    <Sheet title="CERTIFICATE — ATTACH & QUEUE TO CLIENT" onClose={onClose} testid="cert-sheet">
+    <Sheet title="CERTIFICATE — FILL OR ATTACH, QUEUES TO CLIENT" onClose={onClose} testid="cert-sheet">
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <button className={`bf-btn ${tab === "form" ? "bf-btn-amber" : ""}`} data-testid="cert-tab-form" onClick={() => setTab("form")}>FILL FORM</button>
+        <button className={`bf-btn ${tab === "pdf" ? "bf-btn-amber" : ""}`} data-testid="cert-tab-pdf" onClick={() => setTab("pdf")}>ATTACH PDF</button>
+      </div>
       <div className="bf-label mb-1">CERT NAME</div>
-      <input className="bf-input mb-3" placeholder="e.g. Electrical Safety Certificate #ES-2210" data-testid="cert-name-input" value={name} onChange={(e) => setName(e.target.value)} />
-      <input ref={fileRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={onFile} data-testid="cert-file-input" />
-      <button className="bf-btn bf-btn-amber w-full py-4" data-testid="cert-upload-btn" disabled={busy || !name.trim()} onClick={() => fileRef.current.click()}>
-        {busy ? "UPLOADING…" : "ATTACH PDF + QUEUE TO CLIENT"}
-      </button>
+      <input className="bf-input mb-3" data-testid="cert-name-input" value={name} onChange={(e) => setName(e.target.value)} />
+      {tab === "form" ? (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div><div className="bf-label mb-1">CERT NO</div><input className="bf-input" placeholder="ES-2210" data-testid="cert-no-input" value={form.cert_no} onChange={(e) => setForm({ ...form, cert_no: e.target.value })} /></div>
+            <div><div className="bf-label mb-1">RESULT</div><PF k="result" /></div>
+          </div>
+          <div><div className="bf-label mb-1">DESCRIPTION OF WORK</div><input className="bf-input" placeholder="e.g. New circuit + RCD, shed lighting" data-testid="cert-desc-input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+          <div className="grid grid-cols-3 gap-2">
+            <div><div className="bf-label mb-1">VISUAL</div><PF k="visual" /></div>
+            <div><div className="bf-label mb-1">EARTH CONT.</div><PF k="earth_continuity" /></div>
+            <div><div className="bf-label mb-1">POLARITY</div><PF k="polarity" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><div className="bf-label mb-1">INSULATION (MΩ)</div><input className="bf-input" type="number" placeholder="200" data-testid="cert-insulation-input" value={form.insulation_mohm} onChange={(e) => setForm({ ...form, insulation_mohm: e.target.value })} /></div>
+            <div><div className="bf-label mb-1">RCD TRIP (ms)</div><input className="bf-input" type="number" placeholder="28" data-testid="cert-rcd-input" value={form.rcd_ms} onChange={(e) => setForm({ ...form, rcd_ms: e.target.value })} /></div>
+          </div>
+          <button className="bf-btn bf-btn-amber w-full py-4" data-testid="cert-form-submit-btn" disabled={busy} onClick={submitForm}>{busy ? "GENERATING…" : "GENERATE CERT PDF + QUEUE TO CLIENT"}</button>
+        </div>
+      ) : (
+        <>
+          <input ref={fileRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={onFile} data-testid="cert-file-input" />
+          <button className="bf-btn bf-btn-amber w-full py-4" data-testid="cert-upload-btn" disabled={busy || !name.trim()} onClick={() => fileRef.current.click()}>
+            {busy ? "UPLOADING…" : "ATTACH PDF + QUEUE TO CLIENT"}
+          </button>
+        </>
+      )}
       <p className="mono text-xs mt-3" style={{ color: "#4b5563" }}>Queues to the bill-to email {d.bill_to?.email ? `(${d.bill_to.email})` : "(none on file — stored only)"} and is listed on the job pack PDF.</p>
     </Sheet>
   );

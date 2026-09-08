@@ -17,8 +17,8 @@ export default function Inbox() {
     try {
       if (row.kind === "timesheet_voice") {
         const dt = field(row, "ts_date", new Date().toISOString().slice(0, 10));
-        const s = field(row, "ts_start", "07:00");
-        const en = field(row, "ts_end", "15:00");
+        const s = field(row, "ts_start", row.extracted?.ts_start || "07:00");
+        const en = field(row, "ts_end", row.extracted?.ts_end || "15:00");
         const { data } = await cc.post(`/extractions/${row.id}/verify`, { started_at: `${dt}T${s}:00+08:00`, ended_at: `${dt}T${en}:00+08:00` });
         toast.success(`TIMESHEET VERIFIED → ${data.minutes} MIN LOGGED FOR ${row.crew_name || "CREW"}`);
         load();
@@ -68,11 +68,14 @@ export default function Inbox() {
               </div>
               <div className="mono text-xs mb-2" style={{ color: "#94a3b8" }}>{row.job_code ? `${row.job_code} · ${row.job_title}` : "UNASSIGNED"}{row.crew_name ? ` · by ${row.crew_name}` : ""}</div>
               {row.kind === "timesheet_voice" ? (
+                <>
+                {row.extracted?.transcript && <div className="mono text-xs mb-2 p-2" style={{ background: "#0d1015", border: "1px dashed #3b4a5f", color: "#e7ecf3" }} data-testid="inbox-transcript">“{row.extracted.transcript}”{(row.extracted.ts_start || row.extracted.ts_end) && <span style={{ color: "#f59e0b" }}> → suggested {row.extracted.ts_start || "?"}–{row.extracted.ts_end || "?"}</span>}</div>}
                 <div className="grid grid-cols-3 gap-2 mb-3" data-testid="inbox-timesheet-fields">
                   <div><div className="bf-label">DATE</div><input type="date" className="bf-input" data-testid="inbox-ts-date-input" value={field(row, "ts_date", new Date().toISOString().slice(0, 10))} onChange={(e) => setF(row, "ts_date", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
-                  <div><div className="bf-label">ON</div><input type="time" className="bf-input" data-testid="inbox-ts-start-input" value={field(row, "ts_start", "07:00")} onChange={(e) => setF(row, "ts_start", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
-                  <div><div className="bf-label">OFF</div><input type="time" className="bf-input" data-testid="inbox-ts-end-input" value={field(row, "ts_end", "15:00")} onChange={(e) => setF(row, "ts_end", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
+                  <div><div className="bf-label">ON</div><input type="time" className="bf-input" data-testid="inbox-ts-start-input" value={field(row, "ts_start", row.extracted?.ts_start || "07:00")} onChange={(e) => setF(row, "ts_start", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
+                  <div><div className="bf-label">OFF</div><input type="time" className="bf-input" data-testid="inbox-ts-end-input" value={field(row, "ts_end", row.extracted?.ts_end || "15:00")} onChange={(e) => setF(row, "ts_end", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
                 </div>
+                </>
               ) : (
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div><div className="bf-label">SUPPLIER</div>

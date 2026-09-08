@@ -124,6 +124,48 @@ def pack_pdf(path, org, job, client, site, variations, extras, receipts, certs=N
             c.drawString(18 * mm, y, f"{ct['name']}  ·  {('emailed to ' + ct['emailed_to']) if ct.get('emailed_to') else ct['status']}"); y -= 5 * mm
     c.save()
 
+def cert_pdf(path, org, job, client, site, form, crew_name):
+    c = pdfcanvas.Canvas(path, pagesize=A4)
+    w, _ = A4
+    y = _letterhead(c, org, "SAFETY CERTIFICATE")
+    c.setFillColorRGB(0, 0, 0)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(18 * mm, y, form.get("name") or "Electrical Safety Certificate")
+    c.setFont("Helvetica-Bold", 10)
+    c.drawRightString(w - 18 * mm, y, f"CERT NO {form.get('cert_no') or '—'}")
+    y -= 9 * mm
+    c.setFont("Helvetica", 9)
+    for line in [f"Job: {job['code']} — {job['title']}",
+                 f"Client: {client['name']}  ·  ABN {client.get('abn') or '—'}",
+                 f"Installation address: {(site or {}).get('address_text') or (site or {}).get('name') or '—'}",
+                 f"Description of work: {form.get('description') or '—'}"]:
+        c.drawString(18 * mm, y, line); y -= 6 * mm
+    y -= 4 * mm
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(18 * mm, y, "TEST RESULTS"); y -= 6 * mm
+    c.setFont("Helvetica", 9)
+    tests = [("Visual inspection", form.get("visual") or "—"),
+             ("Earth continuity", form.get("earth_continuity") or "—"),
+             ("Insulation resistance", (form.get("insulation_mohm") or "—") if not form.get("insulation_mohm") else f"{form['insulation_mohm']} MΩ"),
+             ("RCD trip time", (form.get("rcd_ms") or "—") if not form.get("rcd_ms") else f"{form['rcd_ms']} ms"),
+             ("Polarity", form.get("polarity") or "—")]
+    for label, val in tests:
+        c.drawString(22 * mm, y, label)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(90 * mm, y, str(val).upper())
+        c.setFont("Helvetica", 9)
+        y -= 5.5 * mm
+    y -= 6 * mm
+    c.setFillColorRGB(*AMBER); c.setFont("Helvetica-Bold", 11)
+    c.drawString(18 * mm, y, f"RESULT: {(form.get('result') or 'PASS').upper()}")
+    y -= 10 * mm
+    c.setFillColorRGB(0, 0, 0); c.setFont("Helvetica", 9)
+    from datetime import datetime
+    c.drawString(18 * mm, y, f"Tested and certified by: {crew_name}   ·   {form.get('issued_on') or datetime.now().strftime('%d %b %Y')}")
+    c.setFont("Helvetica", 7); c.setFillColorRGB(0.4, 0.4, 0.4)
+    c.drawString(18 * mm, 20 * mm, "Generated in-app on the BAD FORM Trades IMS. This is not an invoice.")
+    c.save()
+
 def day_sheet_pdf(path, org, d, jobs):
     c = pdfcanvas.Canvas(path, pagesize=A4)
     w, _ = A4

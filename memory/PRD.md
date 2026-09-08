@@ -34,7 +34,11 @@ GST = floor(cents*qty*0.10+0.5). Cost = time×labour + receipts (no markup). Quo
 - Voice timesheets: Capture sheet VOICE (MediaRecorder, 10s auto-stop) → voice_note document + docket_extraction kind=timesheet_voice needs_verify; Inbox renders audio player + date/on/off inputs; verify requires started_at/ended_at → creates time_entry for the uploading crew member (margin picks it up), no supplier_receipt.
 - Print day sheet: GET /api/dayboard/sheet.pdf?date_str=&auth= (letterhead one-pager: jobs, addresses, crew windows) + PRINT DAY SHEET button on Day Board.
 
-P1: quote v2, PIN-switch polish. P2: DocuSign, negative VOs, SMS, van stock, cert templates, retention, MYOB live, civil/earthworks IMS (separate prompt), yard clone dump/restore. Never: payroll/BAS/bank feeds, wet-hire/SoR/Gantt in trades IMS.
+### Added 2026-06 (feature pass 3, verified via API tests + UI)
+- Cert templates: Field CERT sheet now has FILL FORM (cert no, description, visual/earth/polarity pass-fail, insulation MΩ, RCD ms, result) → POST /api/field/jobs/{id}/certs/form generates a letterhead cert PDF (pdfs.cert_pdf, signed by the crew member) and stores/queues it identically to uploads (_store_cert helper). ATTACH PDF tab retained.
+- Whisper transcription: voice_note capture now transcribes via whisper-1 (emergentintegrations OpenAISpeechToText) then parses with gpt-5.4 into {transcript, ts_start, ts_end, note} stored in extraction.extracted; Inbox shows the transcript + suggested window and pre-fills ON/OFF for one-tap VERIFY → TIME ENTRY. Handles webm/mp3/m4a/wav mimes. Fixture mode returns deterministic transcript.
+
+ P2: DocuSign, negative VOs, SMS, van stock, cert templates, retention, MYOB live, civil/earthworks IMS (separate prompt), yard clone dump/restore. Never: payroll/BAS/bank feeds, wet-hire/SoR/Gantt in trades IMS.
 
 ## Key files
 backend: server.py, db.py, auth.py, money.py, svc.py, pdfs.py, extractor.py, xerostub.py, storage.py, seed.py, routes_cc.py, routes_fp.py, migrations/001_init.sql
