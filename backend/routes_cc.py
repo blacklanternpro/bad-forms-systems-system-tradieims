@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Body, Query, Header
-from datetime import date, timedelta, time as dtime
+from datetime import date, datetime, timedelta, time as dtime
 import db, auth, svc, pdfs, xerostub
 from money import gst_cents, line_total
 
@@ -27,9 +27,7 @@ async def me(u=Depends(staff)):
             "org": {"id": str(org["id"]), "slug": org["slug"], "trading_name": org["trading_name"], "is_demo": org["is_demo"], "structure": org["structure"], "settings": org["settings"]}}
 
 # ---------- day board ----------
-@r.get("/dayboard")
-async def dayboard(date_str: str = None, u=Depends(staff)):
-    d = date.fromisoformat(date_str) if date_str else svc.today_awst()
+async def _board(org_id, d):
     rows = await db.fetch(
         """SELECT ja.id as assignment_id, ja.window_start, ja.window_end, ja.on_date,
                   j.id as job_id, j.code, j.title, j.status, j.billing, j.customer_po,
@@ -37,7 +35,7 @@ async def dayboard(date_str: str = None, u=Depends(staff)):
            FROM job_assignments ja
            JOIN jobs j ON j.id=ja.job_id LEFT JOIN sites s ON s.id=j.site_id
            JOIN clients c ON c.id=j.client_id JOIN users us ON us.id=ja.user_id
-           WHERE ja.org_id=$1 AND ja.on_date=$2 ORDER BY ja.window_start NULLS LAST, j.code""", u["org_id"], d)
+           WHERE ja.org_id=$1 AND ja.on_date=$2 ORDER BY ja.window_start NULLS LAST, j.code""", org_id, d)
     jobs = {}
     for row in rows:
         jid = str(row["job_id"])
@@ -46,7 +44,23 @@ async def dayboard(date_str: str = None, u=Depends(staff)):
                               "client_name": row["client_name"], "crew": []})
         jobs[jid]["crew"].append({"assignment_id": str(row["assignment_id"]), "name": row["crew_name"], "user_id": str(row["crew_id"]),
                                   "window_start": str(row["window_start"] or ""), "window_end": str(row["window_end"] or "")})
-    return {"date": str(d), "jobs": list(jobs.values())}
+    return list(jobs.values())
+
+@r.get("/dayboard")
+async def dayboard(date_str: str = None, u=Depends(staff)):
+    d = date.fromisoformat(date_str) if date_str else svc.today_awst()
+    return {"date": str(d), "jobs": await _board(u["org_id"], d)}
+
+@r.get("/dayboard/sheet.pdf")
+async def day_sheet(date_str: str = None, auth_q: str = Query(None, alias="auth"), authorization: str = Header(None)):
+    import routes_fp
+    payload = routes_fp._decode(auth_q, authorization)
+    org = await svc.get_org(payload["org_id"])
+    d = date.fromisoformat(date_str) if date_str else svc.today_awst()
+    jobs = await _board(payload["org_id"], d)
+    data = svc.render_pdf(payload["org_id"], pdfs.day_sheet_pdf, org, str(d), jobs)
+    return Response(content=data, media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="day-sheet-{d}.pdf"'})
 
 @r.post("/dayboard/copy-previous")
 async def copy_previous(body: dict = Body(...), u=Depends(owner)):
@@ -253,8 +267,9 @@ async def inbox(status: str = "needs_verify", u=Depends(staff)):
     where = "e.org_id=$1" + ("" if status == "all" else " AND e.status=$2")
     args = [u["org_id"]] + ([] if status == "all" else [status])
     rows = await db.fetch(
-        f"""SELECT e.*, d.mime, j.code as job_code, j.title as job_title
-            FROM docket_extractions e JOIN documents d ON d.id=e.document_id LEFT JOIN jobs j ON j.id=e.job_id
+        f"""SELECT e.*, d.mime, d.uploaded_by, cu.name as crew_name, j.code as job_code, j.title as job_title
+            FROM docket_extractions e JOIN documents d ON d.id=e.document_id
+            LEFT JOIN users cu ON cu.id=d.uploaded_by LEFT JOIN jobs j ON j.id=e.job_id
             WHERE {where} ORDER BY e.created_at DESC""", *args)
     for row in rows:
         for k in list(row):
@@ -269,6 +284,24 @@ async def verify_extraction(eid: str, body: dict = Body(default={}), u=Depends(s
         raise HTTPException(404, "Extraction not found")
     if e["status"] == "rejected":
         raise HTTPException(409, "Extraction was rejected")
+    if e["kind"] == "timesheet_voice":
+        if not body.get("started_at") or not body.get("ended_at"):
+            raise HTTPException(400, "started_at and ended_at required to verify a voice timesheet")
+        doc = await db.fetchrow("SELECT uploaded_by FROM documents WHERE id=$1", e["document_id"])
+        job_id = body.get("job_id") or (str(e["job_id"]) if e["job_id"] else None)
+        if not job_id or not doc or not doc["uploaded_by"]:
+            raise HTTPException(400, "Voice timesheet needs a job and an uploading crew member")
+        started = datetime.fromisoformat(body["started_at"])
+        ended = datetime.fromisoformat(body["ended_at"])
+        if ended <= started:
+            raise HTTPException(400, "ended_at must be after started_at")
+        te = await db.fetchrow(
+            "INSERT INTO time_entries (org_id, job_id, user_id, started_at, ended_at, note) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id",
+            u["org_id"], job_id, doc["uploaded_by"], started, ended, body.get("note") or "voice timesheet (verified)")
+        await db.execute("UPDATE docket_extractions SET status='verified', job_id=$1, verified_by=$2, updated_at=now() WHERE id=$3",
+                         job_id, u["id"], eid)
+        minutes = int((ended - started).total_seconds() // 60)
+        return {"time_entry_id": str(te["id"]), "minutes": minutes}
     supplier = body.get("supplier") or e["supplier"] or "other"
     if supplier not in ("reece", "middys", "rexel", "other"):
         supplier = "other"

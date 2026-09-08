@@ -29,7 +29,12 @@ GST = floor(cents*qty*0.10+0.5). Cost = time×labour + receipts (no markup). Quo
 - Design: ground #0a0c0f / surface #11141a / card #161b22 / border #262f3d / amber #f59e0b / steel #94a3b8, Space Grotesk + JetBrains Mono, 8px chamfers, amber L-marks, 40px grid. No Inter/purple/shadcn-default chrome.
 
 ## Backlog / not this run (per spec appendix)
-P1: certificates UI (table+stub exists), voice notes 10s capture UI polish, quote v2, print day sheet, PIN-switch polish. P2: DocuSign, negative VOs, SMS, van stock, cert templates, retention, MYOB live, civil/earthworks IMS (separate prompt). Never: payroll/BAS/bank feeds, wet-hire/SoR/Gantt in trades IMS.
+### Added 2026-06 (feature pass 2, verified via API tests + UI screenshots)
+- Certificates: Field CERT sheet → POST /api/field/jobs/{id}/certs (PDF only, 400 otherwise) → certificates row + cert_pdf document; auto-queues mail to bill-to email (status queued, mail_outbox kind=certificate) or stored if no email; listed on job pack PDF.
+- Voice timesheets: Capture sheet VOICE (MediaRecorder, 10s auto-stop) → voice_note document + docket_extraction kind=timesheet_voice needs_verify; Inbox renders audio player + date/on/off inputs; verify requires started_at/ended_at → creates time_entry for the uploading crew member (margin picks it up), no supplier_receipt.
+- Print day sheet: GET /api/dayboard/sheet.pdf?date_str=&auth= (letterhead one-pager: jobs, addresses, crew windows) + PRINT DAY SHEET button on Day Board.
+
+P1: quote v2, PIN-switch polish. P2: DocuSign, negative VOs, SMS, van stock, cert templates, retention, MYOB live, civil/earthworks IMS (separate prompt), yard clone dump/restore. Never: payroll/BAS/bank feeds, wet-hire/SoR/Gantt in trades IMS.
 
 ## Key files
 backend: server.py, db.py, auth.py, money.py, svc.py, pdfs.py, extractor.py, xerostub.py, storage.py, seed.py, routes_cc.py, routes_fp.py, migrations/001_init.sql

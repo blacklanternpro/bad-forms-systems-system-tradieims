@@ -101,7 +101,8 @@ def variation_pdf(path, org, job, variation, signer=None, signed_at=None):
     c.drawString(18 * mm, 20 * mm, "Same-day extra authorised against the above job. This is not an invoice.")
     c.save()
 
-def pack_pdf(path, org, job, client, site, variations, extras, receipts):
+def pack_pdf(path, org, job, client, site, variations, extras, receipts, certs=None):
+    certs = certs or []
     c = pdfcanvas.Canvas(path, pagesize=A4)
     y = _letterhead(c, org, f"JOB PACK {job['code']}")
     c.setFillColorRGB(0, 0, 0)
@@ -110,9 +111,39 @@ def pack_pdf(path, org, job, client, site, variations, extras, receipts):
     c.setFont("Helvetica", 9)
     for line in [f"Client: {client['name']}", f"Site: {(site or {}).get('name','—')} {(site or {}).get('address_text','') or ''}",
                  f"Status: {job['status']}  ·  Billing: {job['billing']}",
-                 f"Variations: {len(variations)}  ·  Extras: {len(extras)}  ·  Receipts: {len(receipts)}"]:
+                 f"Variations: {len(variations)}  ·  Extras: {len(extras)}  ·  Receipts: {len(receipts)}  ·  Certificates: {len(certs)}"]:
         c.drawString(18 * mm, y, line); y -= 5.5 * mm
     y -= 4 * mm
     for v in variations:
         c.drawString(18 * mm, y, f"{v['code']}  {v['title'][:60]}  {_money(v['amount_cents'])}  [{v['status'].upper()}]"); y -= 5 * mm
+    if certs:
+        y -= 4 * mm
+        c.setFont("Helvetica-Bold", 9); c.drawString(18 * mm, y, "CERTIFICATES"); y -= 5.5 * mm
+        c.setFont("Helvetica", 9)
+        for ct in certs:
+            c.drawString(18 * mm, y, f"{ct['name']}  ·  {('emailed to ' + ct['emailed_to']) if ct.get('emailed_to') else ct['status']}"); y -= 5 * mm
+    c.save()
+
+def day_sheet_pdf(path, org, d, jobs):
+    c = pdfcanvas.Canvas(path, pagesize=A4)
+    w, _ = A4
+    y = _letterhead(c, org, f"DAY SHEET {d}")
+    if not jobs:
+        c.setFillColorRGB(0.4, 0.4, 0.4); c.setFont("Helvetica-Bold", 14)
+        c.drawString(18 * mm, y, "NO JOBS THIS AWST DAY")
+    for j in jobs:
+        c.setFillColorRGB(*AMBER); c.setFont("Helvetica-Bold", 11)
+        c.drawString(18 * mm, y, j["code"])
+        c.setFillColorRGB(0, 0, 0)
+        c.drawString(42 * mm, y, j["title"][:70]); y -= 5.5 * mm
+        c.setFont("Helvetica", 9)
+        c.drawString(42 * mm, y, f"{j['client_name']}  ·  {j.get('address_text') or j.get('site_name') or '—'}"); y -= 5.5 * mm
+        for cr in j["crew"]:
+            c.drawString(46 * mm, y, f"{cr['name']}")
+            c.drawRightString(w - 18 * mm, y, f"{(cr['window_start'] or '')[:5]} – {(cr['window_end'] or '')[:5]}")
+            y -= 5 * mm
+        y -= 4 * mm
+        c.setStrokeColorRGB(0.85, 0.85, 0.85); c.line(18 * mm, y, w - 18 * mm, y); y -= 7 * mm
+        if y < 30 * mm:
+            break
     c.save()

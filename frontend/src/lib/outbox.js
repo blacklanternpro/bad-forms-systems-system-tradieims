@@ -47,7 +47,7 @@ export async function flush(apiBase) {
       if (op.form) {
         body = new FormData();
         for (const [k, v] of Object.entries(op.form)) body.append(k, v);
-        if (op.blob) body.append("file", new Blob([op.blob], { type: op.blobType || "image/jpeg" }), "capture.jpg");
+        if (op.blob) body.append("file", new Blob([op.blob], { type: op.blobType || "image/jpeg" }), op.filename || "capture.jpg");
         body.append("client_id", op.id);
       } else {
         headers["Content-Type"] = "application/json";

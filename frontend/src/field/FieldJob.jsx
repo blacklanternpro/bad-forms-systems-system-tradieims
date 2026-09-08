@@ -49,8 +49,8 @@ export default function FieldJob({ onQueue }) {
         <div className="mono text-xs" style={{ color: "#94a3b8" }}>{d.documents.length} documents on this job</div>
       </div>
 
-      <div className="fixed left-0 right-0 bottom-0 grid grid-cols-4" style={{ maxWidth: 560, margin: "0 auto", borderTop: "2px solid #f59e0b", background: "#0d1015", zIndex: 30 }}>
-        {[["capture", "CAPTURE"], ["hours", "HOURS"], ["extra", "EXTRA"], ["pack", "PACK"]].map(([k, l]) => (
+      <div className="fixed left-0 right-0 bottom-0 grid grid-cols-5" style={{ maxWidth: 560, margin: "0 auto", borderTop: "2px solid #f59e0b", background: "#0d1015", zIndex: 30 }}>
+        {[["capture", "CAPTURE"], ["hours", "HOURS"], ["extra", "EXTRA"], ["cert", "CERT"], ["pack", "PACK"]].map(([k, l]) => (
           <button key={k} data-testid={`sheet-btn-${k}`} onClick={() => k === "pack" ? window.open(`${API}/field/jobs/${jobId}/pack.pdf?auth=${localStorage.getItem("bf_field_token")}`, "_blank") : setSheet(k)}
             className="mono text-xs py-4" style={{ background: "none", border: 0, borderRight: "1px solid #1c232e", color: "#e7ecf3", letterSpacing: "0.12em", cursor: "pointer" }}>{l}</button>
         ))}
@@ -59,6 +59,7 @@ export default function FieldJob({ onQueue }) {
       {sheet === "capture" && <CaptureSheet jobId={jobId} onClose={() => { setSheet(null); load(); }} onQueue={onQueue} />}
       {sheet === "hours" && <HoursSheet jobId={jobId} onClose={() => { setSheet(null); load(); }} onQueue={onQueue} />}
       {sheet === "extra" && <ExtraSheet jobId={jobId} d={d} onClose={() => { setSheet(null); load(); }} onQueue={onQueue} />}
+      {sheet === "cert" && <CertSheet jobId={jobId} d={d} onClose={() => { setSheet(null); load(); }} />}
     </div>
   );
 }
@@ -66,7 +67,9 @@ export default function FieldJob({ onQueue }) {
 const CaptureSheet = ({ jobId, onClose, onQueue }) => {
   const [kind, setKind] = useState("docket_photo");
   const [busy, setBusy] = useState(false);
+  const [recSecs, setRecSecs] = useState(null);
   const fileRef = useRef();
+  const recRef = useRef(null);
 
   const onFile = async (e) => {
     const f = e.target.files?.[0];
@@ -87,18 +90,91 @@ const CaptureSheet = ({ jobId, onClose, onQueue }) => {
     onClose();
   };
 
+  const stopRec = () => { if (recRef.current?.state === "recording") recRef.current.stop(); };
+
+  const startRec = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      const chunks = [];
+      mr.ondataavailable = (e) => chunks.push(e.data);
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        setRecSecs(null);
+        const blob = new Blob(chunks, { type: mr.mimeType || "audio/webm" });
+        await queueOp({ url: `/field/jobs/${jobId}/capture`, form: { kind: "voice_note" }, blob: await blob.arrayBuffer(), blobType: "audio/webm", filename: "voice.webm" });
+        onQueue && onQueue();
+        if (navigator.onLine) { await flush(API); toast.success("VOICE TIMESHEET → INBOX (NEEDS VERIFY)"); }
+        else toast.info("OFFLINE — QUEUED");
+        onClose();
+      };
+      recRef.current = mr;
+      mr.start();
+      setRecSecs(0);
+      let s = 0;
+      const iv = setInterval(() => {
+        s += 1; setRecSecs(s);
+        if (s >= 10 || mr.state !== "recording") { clearInterval(iv); if (mr.state === "recording") mr.stop(); }
+      }, 1000);
+    } catch (e) { toast.error("MIC UNAVAILABLE — " + e.message); }
+  };
+
   return (
     <Sheet title="CAPTURE — TAG THEN SHOOT" onClose={onClose} testid="capture-sheet">
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        {[["docket_photo", "DOCKET"], ["before_photo", "BEFORE"], ["after_photo", "AFTER"]].map(([k, l]) => (
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        {[["docket_photo", "DOCKET"], ["before_photo", "BEFORE"], ["after_photo", "AFTER"], ["voice_note", "VOICE"]].map(([k, l]) => (
           <button key={k} className={`bf-btn ${kind === k ? "bf-btn-amber" : ""}`} data-testid={`capture-kind-${k}`} onClick={() => setKind(k)}>{l}</button>
         ))}
       </div>
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={onFile} data-testid="capture-file-input" />
-      <button className="bf-btn bf-btn-amber w-full py-4" data-testid="capture-shoot-btn" disabled={busy} onClick={() => fileRef.current.click()}>
-        {busy ? "COMPRESSING…" : "PHOTOGRAPH (≤1600px · JPEG 0.7)"}
+      {kind === "voice_note" ? (
+        recSecs === null ? (
+          <button className="bf-btn bf-btn-amber w-full py-4" data-testid="voice-record-btn" onClick={startRec}>RECORD VOICE TIMESHEET (MAX 10s)</button>
+        ) : (
+          <button className="bf-btn w-full py-4" data-testid="voice-stop-btn" style={{ borderColor: "#ef4444", color: "#ef4444" }} onClick={stopRec}>● RECORDING {recSecs}s / 10s — TAP TO STOP</button>
+        )
+      ) : (
+        <>
+          <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={onFile} data-testid="capture-file-input" />
+          <button className="bf-btn bf-btn-amber w-full py-4" data-testid="capture-shoot-btn" disabled={busy} onClick={() => fileRef.current.click()}>
+            {busy ? "COMPRESSING…" : "PHOTOGRAPH (≤1600px · JPEG 0.7)"}
+          </button>
+        </>
+      )}
+      <p className="mono text-xs mt-3" style={{ color: "#4b5563" }}>Dockets and voice timesheets go through the verify gate — nothing hits the ledger without a human.</p>
+    </Sheet>
+  );
+};
+
+const CertSheet = ({ jobId, d, onClose }) => {
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef();
+
+  const onFile = async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!name.trim()) { toast.error("NAME THE CERT FIRST"); return; }
+    setBusy(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      fd.append("name", name);
+      const { data } = await fx.post(`/field/jobs/${jobId}/certs`, fd);
+      toast.success(data.emailed_to ? `CERT STORED + QUEUED TO ${data.emailed_to} — GOES OUT WITH THE PACK` : "CERT STORED — CLIENT HAS NO EMAIL, IT RIDES IN THE PACK");
+      onClose();
+    } catch (e2) { toast.error(errMsg(e2)); }
+    setBusy(false);
+  };
+
+  return (
+    <Sheet title="CERTIFICATE — ATTACH & QUEUE TO CLIENT" onClose={onClose} testid="cert-sheet">
+      <div className="bf-label mb-1">CERT NAME</div>
+      <input className="bf-input mb-3" placeholder="e.g. Electrical Safety Certificate #ES-2210" data-testid="cert-name-input" value={name} onChange={(e) => setName(e.target.value)} />
+      <input ref={fileRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={onFile} data-testid="cert-file-input" />
+      <button className="bf-btn bf-btn-amber w-full py-4" data-testid="cert-upload-btn" disabled={busy || !name.trim()} onClick={() => fileRef.current.click()}>
+        {busy ? "UPLOADING…" : "ATTACH PDF + QUEUE TO CLIENT"}
       </button>
-      <p className="mono text-xs mt-3" style={{ color: "#4b5563" }}>Dockets go through the verify gate — nothing hits the ledger without a human.</p>
+      <p className="mono text-xs mt-3" style={{ color: "#4b5563" }}>Queues to the bill-to email {d.bill_to?.email ? `(${d.bill_to.email})` : "(none on file — stored only)"} and is listed on the job pack PDF.</p>
     </Sheet>
   );
 };

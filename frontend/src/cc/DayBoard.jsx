@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { cc, errMsg } from "@/lib/api";
+import { cc, errMsg, API } from "@/lib/api";
 import { toast } from "sonner";
 
 const todayIso = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Australia/Perth" })).toISOString().slice(0, 10);
@@ -58,6 +58,7 @@ export default function DayBoard() {
           <button className="bf-btn" data-testid="dayboard-prev-btn" onClick={() => shift(-1)}>◂ PREV</button>
           <input type="date" className="bf-input" style={{ width: 170 }} data-testid="dayboard-date-input" value={date} onChange={(e) => setDate(e.target.value)} />
           <button className="bf-btn" data-testid="dayboard-next-btn" onClick={() => shift(1)}>NEXT ▸</button>
+          <button className="bf-btn" data-testid="print-day-sheet-btn" onClick={() => window.open(`${API}/dayboard/sheet.pdf?date_str=${date}&auth=${localStorage.getItem("bf_token")}`, "_blank")}>PRINT DAY SHEET</button>
           {isOwner && <button className="bf-btn bf-btn-amber" data-testid="copy-previous-day-btn" onClick={copyPrev}>COPY PREVIOUS DAY</button>}
         </div>
       </div>

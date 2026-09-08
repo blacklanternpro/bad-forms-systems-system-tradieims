@@ -82,9 +82,16 @@ async def capture(jid: str, file: UploadFile = File(...), kind: str = Form("dock
     if kind != "voice_note":
         data = svc.compress_image(data)
         mime = "image/jpeg"
+    else:
+        mime = mime if mime.startswith("audio/") else "audio/webm"
     path = svc.save_bytes(u["org_id"], data, ext, mime)
     doc = await svc.add_document(u["org_id"], jid, kind, path, mime, u["id"])
     ext_row = None
+    if kind == "voice_note":
+        ext_row = await db.fetchrow(
+            """INSERT INTO docket_extractions (org_id, document_id, job_id, status, kind, extracted)
+               VALUES ($1,$2,$3,'needs_verify','timesheet_voice',$4) RETURNING id, status""",
+            u["org_id"], doc["id"], jid, {"source": "voice_note", "crew": u["name"]})
     if kind == "docket_photo":
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as t:
             t.write(data); tmp = t.name
@@ -169,6 +176,25 @@ async def send_variation(vid: str, body: dict = Body(default={}), u=Depends(anyu
     await svc.queue_mail(u["org_id"], to_email, f"Sign variation {v['code']} — {j['code']}", "variation_send", v["id"])
     return {"send_id": str(send["id"]), "sign_path": f"/s/{tok}", "to_email": to_email}
 
+@r.post("/field/jobs/{jid}/certs")
+async def upload_cert(jid: str, file: UploadFile = File(...), name: str = Form(...), u=Depends(crew)):
+    j = await _job_for(u, jid)
+    if not (file.content_type or "").endswith("pdf"):
+        raise HTTPException(400, "Certificate must be a PDF")
+    data = await file.read()
+    path = svc.save_bytes(u["org_id"], data, "pdf", "application/pdf")
+    doc = await svc.add_document(u["org_id"], jid, "cert_pdf", path, "application/pdf", u["id"], meta={"name": name})
+    client = await db.fetchrow("SELECT * FROM clients WHERE id=$1", j["bill_to_client_id"] or j["client_id"])
+    to_email = client and client.get("email")
+    cert = await db.fetchrow(
+        """INSERT INTO certificates (org_id, job_id, name, document_id, emailed_to, emailed_at, status)
+           VALUES ($1,$2,$3,$4,$5, CASE WHEN $5::text IS NULL THEN NULL ELSE now() END, $6) RETURNING id, status""",
+        u["org_id"], jid, name, doc["id"], to_email, "queued" if to_email else "stored")
+    if to_email:
+        await svc.queue_mail(u["org_id"], to_email, f"Certificate — {name} — {j['code']}", "certificate", cert["id"])
+    return {"certificate_id": str(cert["id"]), "document_id": str(doc["id"]),
+            "status": cert["status"], "emailed_to": to_email}
+
 @r.get("/field/jobs/{jid}/pack.pdf")
 async def job_pack(jid: str, auth_q: str = Query(None, alias="auth"), authorization: str = Header(None)):
     payload = _decode(auth_q, authorization)
@@ -181,7 +207,8 @@ async def job_pack(jid: str, auth_q: str = Query(None, alias="auth"), authorizat
     variations = await db.fetch("SELECT * FROM variations WHERE job_id=$1 ORDER BY code", jid)
     extras = await db.fetch("SELECT * FROM job_extra_lines WHERE job_id=$1", jid)
     receipts = await db.fetch("SELECT * FROM supplier_receipts WHERE job_id=$1", jid)
-    data = svc.render_pdf(j["org_id"], pdfs.pack_pdf, org, j, client, site, variations, extras, receipts)
+    certs = await db.fetch("SELECT * FROM certificates WHERE job_id=$1 ORDER BY created_at", jid)
+    data = svc.render_pdf(j["org_id"], pdfs.pack_pdf, org, j, client, site, variations, extras, receipts, certs=certs)
     return Response(content=data, media_type="application/pdf")
 
 def _decode(auth_q, authorization):

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { cc, money, errMsg, API } from "@/lib/api";
 import { toast } from "sonner";
-
 export default function Inbox() {
   const [rows, setRows] = useState([]);
   const [status, setStatus] = useState("needs_verify");
@@ -16,6 +15,15 @@ export default function Inbox() {
 
   const verify = async (row, withBill) => {
     try {
+      if (row.kind === "timesheet_voice") {
+        const dt = field(row, "ts_date", new Date().toISOString().slice(0, 10));
+        const s = field(row, "ts_start", "07:00");
+        const en = field(row, "ts_end", "15:00");
+        const { data } = await cc.post(`/extractions/${row.id}/verify`, { started_at: `${dt}T${s}:00+08:00`, ended_at: `${dt}T${en}:00+08:00` });
+        toast.success(`TIMESHEET VERIFIED → ${data.minutes} MIN LOGGED FOR ${row.crew_name || "CREW"}`);
+        load();
+        return;
+      }
       const e = edit[row.id] || {};
       const body = {
         supplier: field(row, "supplier", "other"),
@@ -45,13 +53,27 @@ export default function Inbox() {
       <div className="grid grid-cols-2 gap-6 bf-stagger" data-testid="inbox-list">
         {rows.map((row) => (
           <div key={row.id} className="bf-card bf-frame p-5 flex gap-5" data-testid={`inbox-item-${row.docket_number || row.id}`}>
-            <img alt="docket" src={`${API}/files/${row.document_id}?auth=${token}`} style={{ width: 130, height: 170, objectFit: "cover", border: "1px solid #262f3d" }} />
+            {String(row.mime || "").startsWith("audio/") ? (
+              <div style={{ width: 130 }} className="flex flex-col justify-center gap-2">
+                <div className="bf-label" style={{ color: "#f59e0b" }}>VOICE NOTE</div>
+                <audio controls data-testid="inbox-audio-player" src={`${API}/files/${row.document_id}?auth=${token}`} style={{ width: 130 }} />
+              </div>
+            ) : (
+              <img alt="docket" src={`${API}/files/${row.document_id}?auth=${token}`} style={{ width: 130, height: 170, objectFit: "cover", border: "1px solid #262f3d" }} />
+            )}
             <div className="flex-1">
               <div className="flex justify-between mb-3">
                 <span className="bf-chip chip-amber">{(row.kind || "unknown").replace("_", " ").toUpperCase()}</span>
                 <span className={`bf-chip ${row.status === "needs_verify" ? "chip-red" : row.status === "verified" ? "chip-green" : "chip-steel"}`}>{row.status.toUpperCase()}</span>
               </div>
-              <div className="mono text-xs mb-2" style={{ color: "#94a3b8" }}>{row.job_code ? `${row.job_code} · ${row.job_title}` : "UNASSIGNED"}</div>
+              <div className="mono text-xs mb-2" style={{ color: "#94a3b8" }}>{row.job_code ? `${row.job_code} · ${row.job_title}` : "UNASSIGNED"}{row.crew_name ? ` · by ${row.crew_name}` : ""}</div>
+              {row.kind === "timesheet_voice" ? (
+                <div className="grid grid-cols-3 gap-2 mb-3" data-testid="inbox-timesheet-fields">
+                  <div><div className="bf-label">DATE</div><input type="date" className="bf-input" data-testid="inbox-ts-date-input" value={field(row, "ts_date", new Date().toISOString().slice(0, 10))} onChange={(e) => setF(row, "ts_date", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
+                  <div><div className="bf-label">ON</div><input type="time" className="bf-input" data-testid="inbox-ts-start-input" value={field(row, "ts_start", "07:00")} onChange={(e) => setF(row, "ts_start", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
+                  <div><div className="bf-label">OFF</div><input type="time" className="bf-input" data-testid="inbox-ts-end-input" value={field(row, "ts_end", "15:00")} onChange={(e) => setF(row, "ts_end", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
+                </div>
+              ) : (
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div><div className="bf-label">SUPPLIER</div>
                   <select className="bf-input" data-testid="inbox-supplier-select" value={field(row, "supplier", "other") || "other"} onChange={(e) => setF(row, "supplier", e.target.value)} disabled={row.status !== "needs_verify"}>
@@ -61,10 +83,11 @@ export default function Inbox() {
                 <div><div className="bf-label">TOTAL $</div><input className="bf-input" type="number" data-testid="inbox-total-input" value={edit[row.id]?.total_dollars !== undefined ? edit[row.id].total_dollars : ((row.total_cents || 0) / 100)} onChange={(e) => setF(row, "total_dollars", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
                 <div><div className="bf-label">GST $</div><input className="bf-input" type="number" data-testid="inbox-gst-input" value={edit[row.id]?.gst_dollars !== undefined ? edit[row.id].gst_dollars : ((row.gst_cents || 0) / 100)} onChange={(e) => setF(row, "gst_dollars", e.target.value)} disabled={row.status !== "needs_verify"} /></div>
               </div>
+              )}
               {row.status === "needs_verify" && (
                 <div className="flex gap-2 flex-wrap">
-                  <button className="bf-btn bf-btn-amber" data-testid="inbox-verify-btn" onClick={() => verify(row, false)}>VERIFY</button>
-                  <button className="bf-btn" data-testid="inbox-verify-bill-btn" onClick={() => verify(row, true)}>VERIFY + BILL DRAFT</button>
+                  <button className="bf-btn bf-btn-amber" data-testid="inbox-verify-btn" onClick={() => verify(row, false)}>{row.kind === "timesheet_voice" ? "VERIFY → TIME ENTRY" : "VERIFY"}</button>
+                  {row.kind !== "timesheet_voice" && <button className="bf-btn" data-testid="inbox-verify-bill-btn" onClick={() => verify(row, true)}>VERIFY + BILL DRAFT</button>}
                   <button className="bf-btn bf-btn-danger" data-testid="inbox-reject-btn" onClick={() => reject(row)}>REJECT</button>
                 </div>
               )}
