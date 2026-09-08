@@ -1,3 +1,2 @@
 cron=3.0pl1-162
-postgresql-16=16.15-1.pgdg12+2
-postgresql-common=293.pgdg12+1
+postgresql-common=248+deb12u1
