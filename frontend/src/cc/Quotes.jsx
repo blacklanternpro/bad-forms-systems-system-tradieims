@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 export default function Quotes() {
   const [quotes, setQuotes] = useState([]);
+  const [filter, setFilter] = useState("all");
   const [dir, setDir] = useState({ clients: [], sites: [] });
   const [open, setOpen] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -14,8 +15,8 @@ export default function Quotes() {
   const [sendEmail, setSendEmail] = useState("");
   const [acceptLink, setAcceptLink] = useState(null);
 
-  const load = () => cc.get("/quotes").then((r) => setQuotes(r.data));
-  useEffect(() => { load(); cc.get("/directory").then((r) => setDir(r.data)); }, []);
+  const load = () => cc.get(`/quotes?filter=${filter}`).then((r) => setQuotes(r.data));
+  useEffect(() => { load(); cc.get("/directory").then((r) => setDir(r.data)); }, [filter]);
 
   const openQuote = async (id) => {
     if (open === id) { setOpen(null); return; }
@@ -61,7 +62,11 @@ export default function Quotes() {
     <div className="bf-enter">
       <div className="flex items-end justify-between mb-8">
         <div><div className="bf-label mb-1">LETTERHEAD PDF · /q TOKEN ACCEPT</div><h1 className="bf-h1 text-4xl">QUOTES</h1></div>
-        {isOwner && <button className="bf-btn bf-btn-amber" data-testid="new-quote-btn" onClick={() => setCreating(!creating)}>{creating ? "CANCEL" : "NEW QUOTE"}</button>}
+        <div className="flex gap-2">
+          <button className={`bf-btn ${filter === "all" ? "bf-btn-amber" : ""}`} data-testid="quotes-filter-all" onClick={() => setFilter("all")}>ALL</button>
+          <button className={`bf-btn ${filter === "follow_up" ? "bf-btn-amber" : ""}`} data-testid="quotes-filter-follow-up" onClick={() => setFilter("follow_up")}>FOLLOW UP</button>
+          {isOwner && <button className="bf-btn bf-btn-amber" data-testid="new-quote-btn" onClick={() => setCreating(!creating)}>{creating ? "CANCEL" : "NEW QUOTE"}</button>}
+        </div>
       </div>
 
       {creating && (
@@ -102,6 +107,8 @@ export default function Quotes() {
               <span className="mono text-sm" style={{ width: 120, textAlign: "right" }}>{money(q.total_cents)}</span>
               <span className="mono text-xs" style={{ width: 90, color: "#94a3b8" }}>{q.deposit_bps ? `DEP ${q.deposit_bps / 100}%` : ""}</span>
               <span className={`bf-chip ${STATUS[q.status]}`} data-testid={`quote-status-${q.code}`}>{q.status.toUpperCase()}</span>
+              {q.overdue && <span className="bf-chip chip-red" data-testid={`quote-overdue-${q.code}`}>OVERDUE</span>}
+              {!q.overdue && q.follow_up && <span className="bf-chip chip-amber" data-testid={`quote-follow-up-${q.code}`}>FOLLOW UP</span>}
             </div>
             {open === q.id && detail && (
               <div className="bf-card p-6 mt-1" style={{ borderLeft: "2px solid #f59e0b" }} data-testid="quote-detail">

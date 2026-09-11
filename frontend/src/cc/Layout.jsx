@@ -1,4 +1,7 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { cc, errMsg } from "@/lib/api";
+import { toast } from "sonner";
 
 const NAV = [
   ["day", "DAY BOARD"], ["quotes", "QUOTES"], ["jobs", "JOBS"], ["inbox", "INBOX"],
@@ -9,11 +12,44 @@ export default function Layout() {
   const nav = useNavigate();
   const user = JSON.parse(localStorage.getItem("bf_user") || "{}");
   const org = JSON.parse(localStorage.getItem("bf_org") || "{}");
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const logout = () => { ["bf_token", "bf_user", "bf_org"].forEach((k) => localStorage.removeItem(k)); nav("/login"); };
+
+  const resetYards = async () => {
+    setResetting(true);
+    try {
+      const { data } = await cc.post("/demo/reset");
+      localStorage.setItem("bf_token", data.token);
+      localStorage.setItem("bf_user", JSON.stringify(data.user));
+      localStorage.setItem("bf_org", JSON.stringify(data.org));
+      window.location.assign("/cc/day");
+    } catch (e) {
+      toast.error(errMsg(e));
+      setResetting(false);
+      setConfirmReset(false);
+    }
+  };
 
   return (
     <div className="bf-ground" style={{ minWidth: 1280 }}>
-      {org.is_demo && <div className="demo-banner" data-testid="demo-banner">SYNTHETIC DEMO — NOT A CLIENT</div>}
+      {org.is_demo && (
+        <div className="demo-banner" data-testid="demo-banner">
+          <span>SYNTHETIC DEMO — NOT A CLIENT</span>
+          {user.role === "owner" && !confirmReset && (
+            <button className="bf-btn" data-testid="reset-demo-yards-btn" onClick={() => setConfirmReset(true)}>RESET DEMO YARDS</button>
+          )}
+          {user.role === "owner" && confirmReset && (
+            <>
+              <span data-testid="reset-demo-confirm-copy">RESET BOTH DEMO YARDS TO THIS MORNING?</span>
+              <button className="bf-btn bf-btn-amber" data-testid="reset-demo-confirm-btn" disabled={resetting} onClick={resetYards}>
+                {resetting ? "RESETTING…" : "RESET YARDS"}
+              </button>
+              <button className="bf-btn" data-testid="reset-demo-cancel-btn" disabled={resetting} onClick={() => setConfirmReset(false)}>CANCEL</button>
+            </>
+          )}
+        </div>
+      )}
       <div className="flex items-center gap-10 px-10" style={{ height: 64, borderBottom: "1px solid #262f3d", background: "#0d1015" }}>
         <div>
           <span className="bf-h1 text-lg" style={{ color: "#f59e0b" }}>BAD FORM</span>

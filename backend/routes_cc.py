@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Body, Query, Header
 from datetime import date, datetime, timedelta, time as dtime
-import db, auth, svc, pdfs, xerostub
+import db, auth, svc, pdfs, xerostub, seed
 from money import gst_cents, line_total
 
 r = APIRouter()
@@ -96,14 +96,21 @@ async def unassign(aid: str, u=Depends(owner)):
 async def jobs_list(filter: str = "all", u=Depends(staff)):
     org = await svc.get_org(u["org_id"])
     require_po = (org["settings"].get("trades") or {}).get("require_customer_po")
+    today = svc.today_awst()
+    _, week_end = svc.week_bounds(today)
     where = "j.org_id=$1"
+    args = [u["org_id"]]
     if filter == "recall_due":
-        where += " AND j.recall_on IS NOT NULL AND j.recall_on <= CURRENT_DATE AND j.status NOT IN ('closed')"
+        where += " AND j.recall_on IS NOT NULL AND j.recall_on <= $2 AND j.status NOT IN ('closed')"
+        args.append(today)
+    elif filter == "recall_week":
+        where += " AND j.recall_on IS NOT NULL AND j.status NOT IN ('closed') AND j.recall_on <= $2"
+        args.append(week_end)
     rows = await db.fetch(
         f"""SELECT j.*, c.name as client_name, s.name as site_name, s.address_text,
                    (SELECT count(*) FROM variations v WHERE v.job_id=j.id AND v.status='signed') as signed_vos
             FROM jobs j JOIN clients c ON c.id=j.client_id LEFT JOIN sites s ON s.id=j.site_id
-            WHERE {where} ORDER BY j.code""", u["org_id"])
+            WHERE {where} ORDER BY j.code""", *args)
     for row in rows:
         row["id"] = str(row["id"])
         row["recall_due"] = bool(row["recall_on"] and row["recall_on"] <= svc.today_awst() and row["status"] != "closed")
@@ -155,8 +162,8 @@ async def job_patch(jid: str, body: dict = Body(...), u=Depends(owner)):
     allowed = {"status", "customer_po", "title", "recall_on"}
     for k, v in body.items():
         if k in allowed:
-            if k == "recall_on" and v:
-                v = date.fromisoformat(v)
+            if k == "recall_on":
+                v = date.fromisoformat(v) if v else None
             await db.execute(f"UPDATE jobs SET {k}=$1, updated_at=now() WHERE id=$2 AND org_id=$3", v, jid, u["org_id"])
     return {"ok": True}
 
@@ -172,17 +179,64 @@ async def prepare_draft(jid: str, u=Depends(owner)):
 
 # ---------- quotes ----------
 @r.get("/quotes")
-async def quotes_list(u=Depends(staff)):
+async def quotes_list(filter: str = "all", u=Depends(staff)):
+    today = svc.today_awst()
     rows = await db.fetch(
         """SELECT q.*, c.name as client_name, s.name as site_name,
                   (SELECT COALESCE(sum(round(ql.qty*ql.unit_cents)),0) FROM quote_lines ql WHERE ql.quote_id=q.id)::int as total_cents
            FROM quotes q JOIN clients c ON c.id=q.client_id LEFT JOIN sites s ON s.id=q.site_id
            WHERE q.org_id=$1 ORDER BY q.code DESC""", u["org_id"])
+    out = []
     for row in rows:
+        follow_up, overdue = svc.quote_follow_flags(row["status"], row.get("valid_until"), today)
+        row["follow_up"] = follow_up
+        row["overdue"] = overdue
         for k in list(row):
-            if k not in ("total_cents", "deposit_bps") and not isinstance(row[k], (str, int, float, bool, type(None))):
+            if k not in ("total_cents", "deposit_bps", "follow_up", "overdue") and not isinstance(row[k], (str, int, float, bool, type(None))):
                 row[k] = str(row[k])
-    return rows
+        if filter == "follow_up" and not follow_up:
+            continue
+        out.append(row)
+    return out
+
+@r.get("/nudge")
+async def nudge(u=Depends(staff)):
+    today = svc.today_awst()
+    _, week_end = svc.week_bounds(today)
+    jobs = await db.fetch(
+        """SELECT j.id, j.code, j.title, j.recall_on, c.name as client_name
+           FROM jobs j JOIN clients c ON c.id=j.client_id
+           WHERE j.org_id=$1 AND j.recall_on IS NOT NULL AND j.status NOT IN ('closed') AND j.recall_on <= $2
+           ORDER BY j.recall_on, j.code""", u["org_id"], week_end)
+    recalls = [{"id": str(j["id"]), "code": j["code"], "title": j["title"], "client_name": j["client_name"],
+                "recall_on": str(j["recall_on"]), "overdue": j["recall_on"] <= today} for j in jobs]
+    quotes = await db.fetch(
+        """SELECT q.id, q.code, q.title, q.valid_until, q.status, c.name as client_name
+           FROM quotes q JOIN clients c ON c.id=q.client_id
+           WHERE q.org_id=$1 AND q.status='sent' AND q.valid_until IS NOT NULL AND q.valid_until <= $2
+           ORDER BY q.valid_until, q.code""", u["org_id"], today + timedelta(days=7))
+    qout = []
+    for q in quotes:
+        follow_up, overdue = svc.quote_follow_flags(q["status"], q["valid_until"], today)
+        qout.append({"id": str(q["id"]), "code": q["code"], "title": q["title"], "client_name": q["client_name"],
+                     "valid_until": str(q["valid_until"] or ""), "follow_up": follow_up, "overdue": overdue})
+    return {"recalls": recalls, "quotes": qout}
+
+@r.post("/demo/reset")
+async def demo_reset(u=Depends(owner)):
+    org = await svc.get_org(u["org_id"])
+    if not org or not org["is_demo"]:
+        raise HTTPException(403, "Demo reset is only available on synthetic yards")
+    email = (u.get("email") or "").strip().lower()
+    await seed.reset_demo_yards()
+    nu = await db.fetchrow("SELECT * FROM users WHERE lower(email)=$1", email)
+    if not nu:
+        raise HTTPException(401, "User not found after reset")
+    tok = auth.make_token(nu)
+    norg = await svc.get_org(nu["org_id"])
+    return {"token": tok, "user": {"id": str(nu["id"]), "name": nu["name"], "email": nu["email"], "role": nu["role"]},
+            "org": {"id": str(norg["id"]), "slug": norg["slug"], "trading_name": norg["trading_name"], "is_demo": norg["is_demo"],
+                    "structure": norg["structure"], "settings": norg["settings"]}}
 
 @r.post("/quotes")
 async def quote_create(body: dict = Body(...), u=Depends(owner)):

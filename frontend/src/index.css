@@ -110,7 +110,8 @@ body {
 .demo-banner {
   font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em;
   background: repeating-linear-gradient(-45deg, #1a1206, #1a1206 12px, #14161b 12px, #14161b 24px);
-  color: var(--amber); text-align: center; padding: 5px 0; border-bottom: 1px solid #262f3d;
+  color: var(--amber); text-align: center; padding: 5px 12px; border-bottom: 1px solid #262f3d;
+  display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
 }
 
 .bf-enter { animation: bfEnter 0.35s ease both; }

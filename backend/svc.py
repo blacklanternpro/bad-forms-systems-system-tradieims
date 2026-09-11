@@ -11,6 +11,50 @@ MIME = {"png": "image/png", "jpg": "image/jpeg", "pdf": "application/pdf", "webm
 def today_awst():
     return datetime.now(PERTH).date()
 
+def week_bounds(d=None):
+    d = d or today_awst()
+    week_start = d - timedelta(days=d.weekday())
+    week_end = week_start + timedelta(days=6)
+    return week_start, week_end
+
+def cert_prefix(org):
+    return ((org.get("settings") or {}).get("trades") or {}).get("cert_prefix") or "ES"
+
+def next_cert_from_existing(cert_nos, prefix="ES"):
+    prefix = (prefix or "ES").rstrip("-")
+    n = 0
+    head = prefix.upper() + "-"
+    for raw in cert_nos:
+        s = (raw or "").strip()
+        if not s.upper().startswith(head):
+            continue
+        tail = s[len(prefix) + 1:]
+        if tail.isdigit():
+            n = max(n, int(tail))
+    return f"{prefix}-{n + 1:04d}"
+
+def allocate_cert_no(org_id, cert_no):
+    s = (cert_no or "").strip()
+    if not s:
+        raise HTTPException(400, "cert_no is required")
+    return s
+
+async def next_cert_no(org_id):
+    org = await get_org(org_id)
+    prefix = cert_prefix(org)
+    rows = await db.fetch("SELECT cert_no FROM certificates WHERE org_id=$1 AND cert_no IS NOT NULL", org_id)
+    return next_cert_from_existing([r["cert_no"] for r in rows], prefix)
+
+def quote_follow_flags(status, valid_until, today=None):
+    today = today or today_awst()
+    vu = valid_until
+    if isinstance(vu, str):
+        vu = date.fromisoformat(vu) if vu else None
+    sent = status == "sent" and vu is not None
+    overdue = bool(sent and vu < today)
+    follow_up = bool(sent and vu <= today + timedelta(days=7))
+    return follow_up, overdue
+
 def token_pair():
     tok = secrets.token_urlsafe(32)
     return tok, hashlib.sha256(tok.encode()).hexdigest()
