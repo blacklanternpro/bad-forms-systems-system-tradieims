@@ -35,8 +35,6 @@ GST = floor(cents*qty*0.10+0.5). Cost = time×labour + receipts (no markup). Quo
 - Quote follow-ups: sent quotes with valid_until within 7 days (incl. overdue) flagged follow_up; Quotes FOLLOW UP filter; Day Board QUOTES TO CHASE. Status is not auto-expired.
 
 ## Backlog / not this run (per spec appendix)
-
-## Backlog / not this run (per spec appendix)
 ### Added 2026-06 (feature pass 2, verified via API tests + UI screenshots)
 - Certificates: Field CERT sheet → POST /api/field/jobs/{id}/certs (PDF only, 400 otherwise) → certificates row + cert_pdf document; auto-queues mail to bill-to email (status queued, mail_outbox kind=certificate) or stored if no email; listed on job pack PDF.
 - Voice timesheets: Capture sheet VOICE (MediaRecorder, 10s auto-stop) → voice_note document + docket_extraction kind=timesheet_voice needs_verify; Inbox renders audio player + date/on/off inputs; verify requires started_at/ended_at → creates time_entry for the uploading crew member (margin picks it up), no supplier_receipt.
@@ -49,6 +47,6 @@ GST = floor(cents*qty*0.10+0.5). Cost = time×labour + receipts (no markup). Quo
  P2: DocuSign, negative VOs, SMS, van stock, cert templates, retention, MYOB live, civil/earthworks IMS (separate prompt), yard clone dump/restore. Never: payroll/BAS/bank feeds, wet-hire/SoR/Gantt in trades IMS.
 
 ## Key files
-backend: server.py, db.py, auth.py, money.py, svc.py, pdfs.py, extractor.py, xerostub.py, storage.py, seed.py, routes_cc.py, routes_fp.py, migrations/001_init.sql
+backend: server.py, db.py, auth.py, money.py, svc.py, pdfs.py, extractor.py, xerostub.py, storage.py, seed.py, routes_cc.py, routes_fp.py, migrations/{001_init,002_cert_no}.sql
 frontend: src/App.js, index.css (design tokens), lib/{api,outbox}.js, components/SigPad.jsx, cc/{Layout,DayBoard,Quotes,Jobs,JobDetail,Inbox,Ledger,Directory,Modules}.jsx, field/{Field,FieldJob}.jsx, pages/{Login,PublicQuote,PublicSign}.jsx
 ops: /app/scripts/ensure_pg.sh, /app/tests/smoke.py, /app/memory/test_credentials.md
