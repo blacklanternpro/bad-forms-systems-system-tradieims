@@ -174,7 +174,7 @@ async def seed_org(S):
         q2 = await db.fetchrow(
             """INSERT INTO quotes (org_id, client_id, site_id, bill_to_client_id, code, title, status, valid_until, deposit_bps)
                VALUES ($1,$2,$3,$2,'Q-002','Shed slab 12x8 — accepted works','sent',$4,5000) RETURNING *""",
-            oid, clients[0]["id"], sites[0]["id"], today + timedelta(days=7), S["deposit_bps"] and 5000)
+            oid, clients[0]["id"], sites[0]["id"], today + timedelta(days=7))
         for i, (d, qy, uc) in enumerate([("Slab prep, mesh and pour", 1, 520000), ("Saw cuts + seal", 1, 46000)]):
             await db.execute("INSERT INTO quote_lines (org_id, quote_id, description, qty, unit_cents, sort) VALUES ($1,$2,$3,$4,$5,$6)", oid, q2["id"], d, qy, uc, i)
         q2 = await db.fetchrow("SELECT * FROM quotes WHERE id=$1", q2["id"])

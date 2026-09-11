@@ -1,4 +1,8 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+DO $$ BEGIN
+  CREATE EXTENSION IF NOT EXISTS pgcrypto;
+EXCEPTION WHEN OTHERS THEN
+  NULL; -- gen_random_uuid is in core on PG 13+
+END $$;
 
 CREATE TABLE organisations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
