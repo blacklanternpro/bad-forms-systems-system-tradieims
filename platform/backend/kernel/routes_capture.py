@@ -17,6 +17,14 @@ from kernel.common import audit, get_org
 
 r = APIRouter(tags=["capture"])
 
+# Pack allocation hooks: capture_type -> async (u, cap, fields) -> allocation dict.
+# Packs register these at import; the kernel never learns pack table names.
+ALLOCATORS: dict[str, object] = {}
+
+
+def register_allocator(capture_type: str, fn) -> None:
+    ALLOCATORS[capture_type] = fn
+
 
 async def create_capture(u: dict, capture_type: str, data: bytes | None, filename: str | None, job_id: str | None, geo: dict | None = None) -> dict:
     org = await get_org(u["org_id"])
@@ -110,6 +118,9 @@ async def _allocate(u: dict, cap: dict, fields: dict) -> dict:
     if ct == "incident":
         await notify.emit(u["org_id"], "incident_reported", "Incident report verified", fields.get("summary") or "", link="/cc/inbox", audience="owner")
         return {"kind": "incident"}
+    hook = ALLOCATORS.get(ct)
+    if hook is not None:
+        return await hook(u, cap, fields)  # type: ignore[operator]
     return {"kind": "recorded"}
 
 

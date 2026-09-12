@@ -6,6 +6,7 @@ import Sheet from "../../components/Sheet";
 import Stamp from "../../components/Stamp";
 import { EmptyView, ErrorView, LoadingView } from "../../components/StatusViews";
 import { useAction, useLoad } from "../../hooks";
+import { DocketSheet, PrestartSheet } from "../civil/FieldCab";
 import { RaiseVariation } from "../trades/Variations";
 
 const CAPTURE_TYPES = [
@@ -23,6 +24,8 @@ export default function FieldJob() {
   const act = useAction();
   const [capOpen, setCapOpen] = useState(false);
   const [varOpen, setVarOpen] = useState(false);
+  const [preOpen, setPreOpen] = useState(false);
+  const [dockOpen, setDockOpen] = useState(false);
   const [capType, setCapType] = useState<string>("receipt");
   const [capResult, setCapResult] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -102,9 +105,25 @@ export default function FieldJob() {
             RAISE VARIATION
           </Button>
         )}
+        {moduleLive("civil") && (
+          <>
+            <Button kind="quiet" full onClick={() => setPreOpen(true)} testId="prestart-open">
+              PRE-START
+            </Button>
+            <Button kind="quiet" full onClick={() => setDockOpen(true)} testId="docket-open">
+              HIRE DOCKET
+            </Button>
+          </>
+        )}
       </div>
 
       {moduleLive("trades") && id && <RaiseVariation jobId={id} open={varOpen} onClose={() => setVarOpen(false)} />}
+      {moduleLive("civil") && id && (
+        <>
+          <PrestartSheet jobId={id} open={preOpen} onClose={() => setPreOpen(false)} />
+          <DocketSheet jobId={id} open={dockOpen} onClose={() => setDockOpen(false)} />
+        </>
+      )}
 
       <h3 className="bf-label">STAGES</h3>
       {p.stages.length === 0 ? (

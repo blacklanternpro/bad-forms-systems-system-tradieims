@@ -7,6 +7,7 @@ must gate themselves with kernel.common.require_module.
 
 from fastapi import FastAPI
 
+from packs.civil import routes as civil_routes
 from packs.trades import routes as trades_routes
 
 from kernel import (
@@ -40,6 +41,7 @@ KERNEL = [
 # (pack_name, router) — populated as sector packs land.
 PACKS: list[tuple[str, object]] = [
     ("trades", trades_routes.r),
+    ("civil", civil_routes.r),
 ]
 
 

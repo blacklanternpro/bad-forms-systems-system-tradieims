@@ -60,6 +60,7 @@ def ensure_db() -> None:
 def reset_and_seed() -> None:
     import db
     import seed
+    from packs.civil import seed_civil
     from packs.trades import seed_trades
 
     async def run():
@@ -68,6 +69,7 @@ def reset_and_seed() -> None:
         await db.migrate()
         await seed.seed_demo_yard()
         await seed_trades.seed_trades_yards()
+        await seed_civil.seed_kemerton()
         await db.close()
 
     asyncio.run(run())
@@ -268,10 +270,59 @@ def trades_checks(c: httpx.Client) -> None:
     check("voice timesheet fixture reads window", c.post("/api/captures", headers=hc, data={"capture_type": "voice_timesheet", "job_id": fj[0]["job_id"]}).json()["extracted"]["started"] == "07:00")
 
 
+def civil_checks(c: httpx.Client) -> None:
+    print("— civil pack: plant, pre-starts, dockets, quarry, SoR —")
+    hd = hdr(c, "owner@demo.local", "demo-owner")
+    check("civil gated off generic yard", c.get("/api/civil/plant", headers=hd).status_code == 501)
+
+    h = hdr(c, "owner@kemgrade.local", "kemgrade-owner")
+    r = c.post("/api/auth/pin", json={"org_slug": "kemgrade", "pin": "7777"})
+    hc = {"Authorization": f"Bearer {r.json()['token']}"}
+
+    plant = c.get("/api/civil/plant", headers=h).json()
+    check("plant register seeded", len(plant) == 3)
+    ex = next(p for p in plant if p["meta"]["code"] == "EX-04")
+    roller = next(p for p in plant if p["meta"]["code"] == "RL-02")
+    check("pre-start status on register", ex["prestart_today"] == "pass")
+    check("wet+dry rates on excavator", {x["mode"] for x in c.get(f"/api/civil/plant/{ex['id']}/rates", headers=h).json()} == {"wet", "dry"})
+
+    jobs = c.get("/api/jobs", headers=h).json()
+    jid = jobs[0]["id"]
+    check("docket without pre-start refused", c.post("/api/civil/dockets", headers=hc, json={"job_id": jid, "asset_id": roller["id"], "mode": "dry", "hours": 8}).status_code == 409)
+    fail = c.post("/api/civil/prestarts", headers=hc, json={"asset_id": roller["id"], "job_id": jid,
+                                                            "checks": [{"name": "Fluids", "ok": False}], "faults": ["Hydraulic weep"]}).json()
+    check("failed pre-start blocks dispatch", fail["dispatch_blocked"] is True)
+    check("failed docket still refused", c.post("/api/civil/dockets", headers=hc, json={"job_id": jid, "asset_id": roller["id"], "mode": "dry", "hours": 8}).status_code == 409)
+    check("pre-start failure notifies office", any(n["event_type"] == "prestart_failed" for n in c.get("/api/notifications", headers=h).json()))
+    c.post("/api/civil/prestarts", headers=hc, json={"asset_id": roller["id"], "job_id": jid, "checks": [{"name": "Fluids", "ok": True}]})
+    short = c.post("/api/civil/dockets", headers=hc, json={"job_id": jid, "asset_id": roller["id"], "mode": "dry", "hours": 2})
+    check("fresh pass reopens dispatch", short.status_code == 200)
+    check("minimum hours bite (2h bills 8h)", short.json()["total_cents"] == 8 * 9800)
+
+    drafts = c.get("/api/civil/dockets?status=draft", headers=h).json()
+    d = next(x for x in drafts if x["code"] == "HD-0001")
+    check("seeded docket rate engine total", d["total_cents"] == round(6.5 * 24500 + 1.5 * 9500))
+    check("tally on docket", d["tally"]["loads"] == 14)
+    check("approve before signature refused", c.post(f"/api/civil/dockets/{d['id']}/approve", headers=h).status_code == 404)
+    sig = "data:image/png;base64,iVBORw0KGgo="
+    check("sign on glass", c.post(f"/api/civil/dockets/{d['id']}/sign", headers=hc, json={"signed_by_name": "S. Pillai", "signature_png": sig}).status_code == 200)
+    check("supervisor approve + email", c.post(f"/api/civil/dockets/{d['id']}/approve", headers=h).status_code == 200)
+    dpdf = c.get(f"/api/civil/dockets/{d['id']}/pdf", headers=h)
+    check("daily docket PDF", dpdf.status_code == 200 and dpdf.content[:4] == b"%PDF")
+
+    qt = c.post("/api/captures", headers=hc, data={"capture_type": "quarry_ticket", "job_id": jid},
+                files={"file": ("q.jpg", b"\xff\xd8x", "image/jpeg")}).json()
+    check("quarry ticket fast-tracks", qt["routing"] == "fast_track")
+    check("verify allocates tonnage", c.post(f"/api/captures/{qt['id']}/verify", headers=h, json={}).json()["allocation"]["kind"] == "quarry_ticket")
+    check("tonnage on register", any(float(t["tonnes"]) == 31.4 for t in c.get("/api/civil/quarry-tickets", headers=h).json()))
+    check("SoR library search", c.get("/api/civil/sor?q=roadbase", headers=h).json()[0]["unit"] == "t")
+
+
 def run_checks() -> None:
     c = httpx.Client(base_url=BASE, timeout=10)
     kernel_checks(c)
     trades_checks(c)
+    civil_checks(c)
     c.close()
 
 

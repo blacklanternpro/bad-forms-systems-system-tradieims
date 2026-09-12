@@ -35,7 +35,7 @@ def row_dict(r) -> dict:
     """asyncpg Record -> JSON-safe dict (jsonb columns arrive as str)."""
     out = {}
     for k, v in dict(r).items():
-        if isinstance(v, str) and k in ("meta", "extracted", "settings", "terminology", "modules", "brand", "lines", "payload", "fields", "checks"):
+        if isinstance(v, str) and k in ("meta", "extracted", "settings", "terminology", "modules", "brand", "lines", "payload", "fields", "checks", "tally", "faults"):
             try:
                 v = json.loads(v)
             except (ValueError, TypeError):

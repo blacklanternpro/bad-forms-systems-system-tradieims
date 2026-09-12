@@ -15,6 +15,8 @@ import Login from "./screens/Login";
 import Notifications from "./screens/Notifications";
 import Quotes from "./screens/Quotes";
 import Search from "./screens/Search";
+import Dockets from "./screens/civil/Dockets";
+import Plant from "./screens/civil/Plant";
 import Certs from "./screens/trades/Certs";
 import CommandShell from "./shell/CommandShell";
 import FieldShell from "./shell/FieldShell";
@@ -70,6 +72,8 @@ export default function App() {
       <Route path="/admin" element={cc(<Admin />)} />
       <Route path="/search" element={cc(<Search />)} />
       <Route path="/certs" element={cc(<Certs />)} />
+      <Route path="/plant" element={cc(<Plant />)} />
+      <Route path="/dockets" element={cc(<Dockets />)} />
 
       <Route path="/field" element={field(<FieldToday />)} />
       <Route path="/field/jobs/:id" element={field(<FieldJob />)} />

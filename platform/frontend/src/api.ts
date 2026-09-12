@@ -234,3 +234,54 @@ export function moduleLive(name: string): boolean {
   const s = getSession();
   return s?.org.modules[name] === "live";
 }
+
+/* ------------------------------- Civil pack ------------------------------- */
+
+export interface PlantRow {
+  id: string;
+  kind: string;
+  name: string;
+  rego: string | null;
+  meter_hours: string;
+  yard: string | null;
+  meta: { code?: string };
+  prestart_today: "pass" | "fail" | null;
+}
+
+export interface HireRate {
+  id: string;
+  mode: "wet" | "dry";
+  rate_cents_per_hour: number;
+  min_hours: string;
+  standby_cents_per_hour: number;
+  travel_cents: number;
+}
+
+export interface DocketRow {
+  id: string;
+  code: string;
+  work_date: string;
+  mode: "wet" | "dry";
+  hours: string;
+  standby_hours: string;
+  travel: boolean;
+  tally: Record<string, number>;
+  total_cents: number;
+  status: "draft" | "signed" | "approved";
+  signed_by_name: string | null;
+  plant_name: string;
+  job_code: string;
+}
+
+export interface SorItem { id: string; code: string; description: string; unit: string; rate_cents: number }
+
+export interface QuarryTicketRow {
+  id: string;
+  quarry: string | null;
+  ticket_no: string | null;
+  material: string | null;
+  tonnes: string;
+  rate_cents_per_tonne: number;
+  job_code: string | null;
+  created_at: string;
+}

@@ -13,6 +13,7 @@ function navItems(): { to: string; label: string }[] {
     { to: "/inbox", label: "INBOX" },
   ];
   if (moduleLive("trades")) items.push({ to: "/certs", label: "CERTS" });
+  if (moduleLive("civil")) items.push({ to: "/plant", label: "PLANT" }, { to: "/dockets", label: "DOCKETS" });
   items.push({ to: "/admin", label: "ADMIN" });
   return items;
 }
