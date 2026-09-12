@@ -1,0 +1,30 @@
+name: platform-ci
+
+on:
+  push:
+    paths: ["platform/**"]
+  pull_request:
+    paths: ["platform/**"]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r platform/backend/requirements.txt pytest embedded-postgres
+      - run: cd platform && python -m pytest tests/ -x -q
+        env:
+          EXTRACTOR_MODE: fixture
+          STORAGE_MODE: local
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: cd platform/frontend && npm ci && npm run build
