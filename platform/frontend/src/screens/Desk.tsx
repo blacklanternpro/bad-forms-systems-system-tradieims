@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api, money, type ChaseList, type Nudge } from "../api";
+import { api, clearDemo, getSession, getVirginToken, money, subscribeVirgin, type ChaseList, type Nudge } from "../api";
+import Button from "../components/Button";
 import Stamp from "../components/Stamp";
 import { EmptyView, ErrorView, LoadingView } from "../components/StatusViews";
 import Ticket from "../components/Ticket";
@@ -8,6 +10,8 @@ import { useLoad } from "../hooks";
 /** The Desk: morning nudge + money on the table + what needs a look. */
 export default function Desk() {
   const nav = useNavigate();
+  const [virgin, setVirgin] = useState(!!getVirginToken());
+  useEffect(() => subscribeVirgin(() => setVirgin(!!getVirginToken())), []);
   const nudge = useLoad(() => api<Nudge>("/nudge"));
   const chase = useLoad(() => api<ChaseList>("/invoicing/chase"));
 
@@ -105,6 +109,25 @@ export default function Desk() {
           <Stamp label={n.review_count > 0 ? "DESK BUSY" : "DESK CLEAR"} tone={n.review_count > 0 ? "warn" : "ok"} />
         </p>
       </section>
-    </div>
+    
+      {getSession()?.org.is_demo && (getSession()?.user.role === "owner" || getSession()?.user.role === "office") && (
+        <section aria-label="Demo clear" style={{ gridColumn: "1 / -1" }}>
+          <Button
+            kind="quiet"
+            testId="desk-clear-demo"
+            disabled={virgin}
+            onClick={() => {
+              if (!window.confirm("Empties this demo for this tab until you reload.")) return;
+              void clearDemo().then(() => {
+                nudge.reload();
+                chase.reload();
+              });
+            }}
+          >
+            {virgin ? "DEMO CLEARED — RELOAD TO RESTORE" : "CLEAR DEMO (THIS TAB)"}
+          </Button>
+        </section>
+      )}
+</div>
   );
 }

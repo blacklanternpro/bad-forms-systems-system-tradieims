@@ -47,10 +47,31 @@ export class ApiError extends Error {
 
 const BASE = import.meta.env.VITE_API_BASE ?? "";
 
+/** In-memory only — full page reload restores seeded demo data. */
+let virginToken: string | null = null;
+const virginListeners = new Set<() => void>();
+
+export function getVirginToken(): string | null {
+  return virginToken;
+}
+
+export function setVirginToken(token: string | null): void {
+  virginToken = token;
+  virginListeners.forEach((fn) => fn());
+}
+
+export function subscribeVirgin(fn: () => void): () => void {
+  virginListeners.add(fn);
+  return () => {
+    virginListeners.delete(fn);
+  };
+}
+
 export async function api<T>(path: string, opts: { method?: string; body?: unknown; form?: FormData } = {}): Promise<T> {
   const s = getSession();
   const headers: Record<string, string> = {};
   if (s) headers.Authorization = `Bearer ${s.token}`;
+  if (virginToken) headers["X-Demo-Virgin"] = virginToken;
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   const res = await fetch(`${BASE}/api${path}`, {
     method: opts.method ?? (opts.body !== undefined || opts.form ? "POST" : "GET"),
@@ -59,6 +80,7 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
   });
   if (res.status === 401 && s) {
     setSession(null);
+    setVirginToken(null);
     window.location.href = "/login";
   }
   if (!res.ok) {
@@ -72,6 +94,11 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
     throw new ApiError(res.status, detail);
   }
   return (await res.json()) as T;
+}
+
+export async function clearDemo(): Promise<void> {
+  const res = await api<{ virgin_token: string }>("/demo/clear", { method: "POST", body: {} });
+  setVirginToken(res.virgin_token);
 }
 
 export function money(cents: number): string {

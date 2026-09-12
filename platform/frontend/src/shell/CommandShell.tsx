@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { api, getSession, moduleLive, setSession, type NotificationRow } from "../api";
+import { api, getSession, getVirginToken, moduleLive, setSession, subscribeVirgin, type NotificationRow } from "../api";
 import { GloveToggle, ThemeSwitch, applyBrand } from "../components/Chrome";
 
 /** Nav is composed per instance: pack entries only appear when the module is live. */
@@ -27,6 +27,7 @@ export default function CommandShell({ children }: CommandShellProps) {
   const nav = useNavigate();
   const s = getSession();
   const [unread, setUnread] = useState(0);
+  const [virgin, setVirgin] = useState(!!getVirginToken());
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -35,8 +36,10 @@ export default function CommandShell({ children }: CommandShellProps) {
     api<NotificationRow[]>("/notifications")
       .then((rows) => live && setUnread(rows.length))
       .catch(() => undefined);
+    const unsub = subscribeVirgin(() => setVirgin(!!getVirginToken()));
     return () => {
       live = false;
+      unsub();
     };
   }, []);
 
@@ -46,7 +49,7 @@ export default function CommandShell({ children }: CommandShellProps) {
     <div className="bf-page">
       <header style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "8px 20px", borderBottom: "2px solid var(--ink)", paddingBottom: 12 }}>
         <h1 className="bf-h1" style={{ fontSize: 20 }}>{s.org.name}</h1>
-        <span className="bf-label">{s.org.pilot ? "PILOT — CAPTURE PIPELINE" : s.org.is_demo ? "DEMO YARD" : "COMMAND CENTER"}</span>
+        <span className="bf-label" data-testid="masthead-stamp">{virgin ? "DEMO CLEARED — RELOAD TO RESTORE" : s.org.pilot ? "PILOT — CAPTURE PIPELINE" : s.org.is_demo ? "DEMO YARD" : "COMMAND CENTER"}</span>
         <form
           onSubmit={(e) => {
             e.preventDefault();

@@ -59,21 +59,13 @@ def ensure_db() -> None:
 
 def reset_and_seed() -> None:
     import db
-    import seed
-    from packs.civil import seed_civil
-    from packs.fab import seed_fab
-    from packs.fleet import seed_fleet
-    from packs.trades import seed_trades
+    import seed_showcase
 
     async def run():
         p = await db.pool()
         await p.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
         await db.migrate()
-        await seed.seed_demo_yard()
-        await seed_trades.seed_trades_yards()
-        await seed_civil.seed_kemerton()
-        await seed_fab.seed_steelhaus()
-        await seed_fleet.seed_redline()
+        await seed_showcase.seed_all_demo_yards()
         await db.close()
 
     asyncio.run(run())
@@ -486,8 +478,40 @@ def foundry_checks(c: httpx.Client) -> None:
           and c.get("/api/me", headers=h).json()["org"]["brand"]["tokens"]["--accent"] == "#654321")
 
 
+
+def showcase_virgin_checks(c: httpx.Client) -> None:
+    print("— showcase yard + virgin clear —")
+    r = c.post("/api/auth/login", json={"email": "bad-form", "password": "systems"})
+    check("showcase login bad-form/systems", r.status_code == 200)
+    if r.status_code != 200:
+        return
+    body = r.json()
+    check("showcase org slug systems", body.get("org", {}).get("slug") == "systems")
+    check("showcase is_demo", body.get("org", {}).get("is_demo") is True)
+    mods = body.get("org", {}).get("modules") or {}
+    check("showcase all packs live", all(mods.get(m) == "live" for m in ("kernel", "trades", "civil", "fab", "fleet")))
+    h = {"Authorization": f"Bearer {body['token']}"}
+    jobs = c.get("/api/jobs", headers=h)
+    check("showcase jobs populated", jobs.status_code == 200 and len(jobs.json()) >= 3)
+    nudge = c.get("/api/nudge", headers=h)
+    check("showcase nudge has bait", nudge.status_code == 200 and (
+        nudge.json().get("review_count", 0) > 0 or len(nudge.json().get("licences_expiring", [])) > 0
+    ))
+    cleared = c.post("/api/demo/clear", headers=h)
+    check("demo clear issues token", cleared.status_code == 200 and "virgin_token" in cleared.json())
+    vt = cleared.json().get("virgin_token")
+    hv = {**h, "X-Demo-Virgin": vt}
+    empty_jobs = c.get("/api/jobs", headers=hv)
+    check("virgin jobs empty", empty_jobs.status_code == 200 and empty_jobs.json() == [])
+    empty_nudge = c.get("/api/nudge", headers=hv)
+    check("virgin nudge empty", empty_nudge.status_code == 200 and empty_nudge.json().get("review_count") == 0)
+    restored = c.get("/api/jobs", headers=h)
+    check("without virgin header jobs restored", restored.status_code == 200 and len(restored.json()) >= 3)
+
+
 def run_checks() -> None:
     c = httpx.Client(base_url=BASE, timeout=10)
+    showcase_virgin_checks(c)
     kernel_checks(c)
     trades_checks(c)
     civil_checks(c)

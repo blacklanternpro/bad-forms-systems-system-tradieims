@@ -16,6 +16,7 @@ from kernel import (
     routes_auth,
     routes_capture,
     routes_clients,
+    routes_demo,
     routes_field,
     routes_invoice,
     routes_jobs,
@@ -39,6 +40,7 @@ KERNEL = [
     routes_invoice.r,
     routes_notify.r,
     routes_reports.r,
+    routes_demo.r,
 ]
 
 # (pack_name, router) — populated as sector packs land.

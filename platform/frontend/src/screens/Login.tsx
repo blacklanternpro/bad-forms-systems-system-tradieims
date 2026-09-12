@@ -91,7 +91,7 @@ export default function Login() {
 
         {mode === "office" ? (
           <form onSubmit={submitOffice}>
-            <Field label="EMAIL" type="email" value={email} onChange={setEmail} required testId="login-email" />
+            <Field label="LOGIN" type="text" value={email} onChange={setEmail} required testId="login-email" />
             <Field label="PASSWORD" type="password" value={password} onChange={setPassword} required testId="login-password" />
             <Button type="submit" kind="mark" full disabled={busy} testId="login-submit">
               {busy ? "SIGNING IN…" : "SIGN IN"}
@@ -132,6 +132,13 @@ export default function Login() {
               )}
             </div>
           </div>
+        )}
+
+
+        {import.meta.env.VITE_DEMO_HINT === "1" && mode === "office" && (
+          <p data-testid="demo-hint" className="bf-mono" style={{ marginTop: 16, fontSize: 12, color: "var(--ink-mute)", textAlign: "center" }}>
+            Demo: <strong>bad-form</strong> / <strong>systems</strong>
+          </p>
         )}
 
         {error && (

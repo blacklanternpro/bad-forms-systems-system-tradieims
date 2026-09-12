@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { api, getSession, setSession, type OrgAdmin, type OrgBrand, type OrgUser } from "../api";
+import { useEffect, useState } from "react";
+import { api, clearDemo, getSession, getVirginToken, setSession, subscribeVirgin, type OrgAdmin, type OrgBrand, type OrgUser } from "../api";
 import Button from "../components/Button";
 import { THEMES, applyBrand, applyTheme, type ThemeName } from "../components/Chrome";
 import Field from "../components/Field";
@@ -16,6 +16,8 @@ const LEDGERS = ["xero", "myob", "xero-mock"] as const;
 export default function Admin() {
   const s = getSession();
   const isOwner = s?.user.role === "owner";
+  const [virgin, setVirgin] = useState(!!getVirginToken());
+  useEffect(() => subscribeVirgin(() => setVirgin(!!getVirginToken())), []);
   const org = useLoad(() => api<OrgAdmin>("/org/admin"), []);
   const users = useLoad(() => api<OrgUser[]>("/org/users"), []);
   const act = useAction();
@@ -144,6 +146,24 @@ export default function Admin() {
         <a className="bf-label" href="/api/org/export" target="_blank" rel="noreferrer" data-testid="export-link">
           EXPORT EVERY ROW (JSON) ↗
         </a>
+        {s?.org.is_demo && (
+          <div style={{ marginTop: 14 }}>
+            <Button
+              kind="quiet"
+              disabled={act.busy || virgin}
+              testId="clear-demo"
+              onClick={() => {
+                if (!window.confirm("Empties this demo for this tab until you reload. The database is not wiped.")) return;
+                void act.run(async () => { await clearDemo(); });
+              }}
+            >
+              {getVirginToken() ? "DEMO CLEARED — RELOAD TO RESTORE" : "CLEAR DEMO (THIS TAB)"}
+            </Button>
+            <p style={{ fontSize: 12, color: "var(--ink-mute)", marginTop: 6 }}>
+              Break-glass: empties jobs, quotes, pack registers and desk bait for this browser tab. Reload restores the seed.
+            </p>
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="people-h">
