@@ -62,6 +62,7 @@ def reset_and_seed() -> None:
     import seed
     from packs.civil import seed_civil
     from packs.fab import seed_fab
+    from packs.fleet import seed_fleet
     from packs.trades import seed_trades
 
     async def run():
@@ -72,6 +73,7 @@ def reset_and_seed() -> None:
         await seed_trades.seed_trades_yards()
         await seed_civil.seed_kemerton()
         await seed_fab.seed_steelhaus()
+        await seed_fleet.seed_redline()
         await db.close()
 
     asyncio.run(run())
@@ -377,12 +379,62 @@ def fab_checks(c: httpx.Client) -> None:
     check("MDR pack PDF", mdr.status_code == 200 and mdr.content[:4] == b"%PDF")
 
 
+def fleet_checks(c: httpx.Client) -> None:
+    print("— fleet pack: register, floats, workshop queue, SMS vault —")
+    hd = hdr(c, "owner@demo.local", "demo-owner")
+    check("fleet gated off generic yard", c.get("/api/fleet/assets", headers=hd).status_code == 501)
+
+    h = hdr(c, "owner@redline.local", "redline-owner")
+    r = c.post("/api/auth/pin", json={"org_slug": "redline", "pin": "8888"})
+    check("driver PIN login", r.status_code == 200)
+    hc = {"Authorization": f"Bearer {r.json()['token']}"}
+
+    assets = c.get("/api/fleet/assets", headers=h).json()
+    check("register across depots", len(assets) == 4)
+    check("depot filter scopes register", {a["meta"]["code"] for a in c.get("/api/fleet/assets?yard=Picton Depot", headers=h).json()} == {"EX-12", "ATT-07"})
+    hitch = next(a for a in assets if a["meta"]["code"] == "ATT-07")
+    check("attachment linked to carrier", hitch["carrier_name"] == "Cat 336 excavator")
+    pm = next(a for a in assets if a["meta"]["code"] == "PM-01")
+    check("pre-start feeds register status", pm["prestart_today"] == "pass")
+
+    q = c.get("/api/fleet/workshop", headers=h).json()
+    check("hour-meter service due in queue", any(d["plan_name"] == "250h service" for d in q["due_services"]))
+    check("seeded corrective action open", any(x["code"] == "CA-0001" for x in q["open_corrective_actions"]))
+    due = next(d for d in q["due_services"] if d["plan_name"] == "250h service")
+    check("service completion resets clock", c.post(f"/api/fleet/service-plans/{due['plan_id']}/complete", headers=h, json={"notes": "Oil + filters"}).status_code == 200)
+    check("queue clears after service", not any(d["plan_name"] == "250h service" for d in c.get("/api/fleet/workshop", headers=h).json()["due_services"]))
+
+    jobs = c.get("/api/jobs", headers=h).json()
+    rh = next(j for j in jobs if j["code"] == "RH-0001")
+    fl = c.post("/api/fleet/floats", headers=h, json={"asset_id": pm["id"], "job_id": rh["id"], "from_yard": "Bunbury Depot",
+                                                      "to_site": "Kemerton SIA pad 7", "float_date": "2026-09-15", "km": 52,
+                                                      "mobilisation_cents": 30000, "cents_per_km": 600}).json()
+    check("float charge maths", fl["charge_cents"] == 30000 + 52 * 600)
+    check("float delivered", c.post(f"/api/fleet/floats/{fl['id']}/complete", headers=h).status_code == 200)
+
+    ca = next(x for x in c.get("/api/fleet/corrective-actions", headers=h).json() if x["code"] == "CA-0001")
+    check("close-out demands a note", c.post(f"/api/fleet/corrective-actions/{ca['id']}/close", headers=h, json={"note": " "}).status_code == 400)
+    check("corrective action closed", c.post(f"/api/fleet/corrective-actions/{ca['id']}/close", headers=h, json={"note": "Binder replaced"}).status_code == 200)
+
+    lr = c.post("/api/captures", headers=hc, data={"capture_type": "load_restraint"},
+                files={"file": ("load.jpg", b"\xff\xd8x", "image/jpeg")}).json()
+    check("load restraint photo fast-tracks", lr["routing"] == "fast_track")
+    check("verified photo lands in vault", c.post(f"/api/captures/{lr['id']}/verify", headers=h, json={}).json()["allocation"]["kind"] == "sms_evidence")
+
+    vault = c.get("/api/fleet/evidence", headers=h).json()
+    check("evidence on all five SMS outcomes", all(v > 0 for v in vault["counts"].values()))
+    check("vault composes platform records", {"vault", "prestarts", "workshop", "corrective_actions"} <= {i["source"] for i in vault["items"]})
+    pack = c.get("/api/fleet/evidence/pack.pdf", headers=h)
+    check("SMS evidence pack PDF", pack.status_code == 200 and pack.content[:4] == b"%PDF")
+
+
 def run_checks() -> None:
     c = httpx.Client(base_url=BASE, timeout=10)
     kernel_checks(c)
     trades_checks(c)
     civil_checks(c)
     fab_checks(c)
+    fleet_checks(c)
     c.close()
 
 

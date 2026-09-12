@@ -9,6 +9,7 @@ from fastapi import FastAPI
 
 from packs.civil import routes as civil_routes
 from packs.fab import routes as fab_routes
+from packs.fleet import routes as fleet_routes
 from packs.trades import routes as trades_routes
 
 from kernel import (
@@ -44,6 +45,7 @@ PACKS: list[tuple[str, object]] = [
     ("trades", trades_routes.r),
     ("civil", civil_routes.r),
     ("fab", fab_routes.r),
+    ("fleet", fleet_routes.r),
 ]
 
 

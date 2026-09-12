@@ -61,6 +61,11 @@ FIXTURES: dict[str, dict] = {
     "incident": {"summary": "", "confidence": 0.99},
     # Evidence photo for a stage hold point: nothing to extract, never queued for review.
     "stage_photo": {"confidence": 0.99},
+    "load_restraint": {
+        "vehicle": "PM-01 Kenworth T410",
+        "restraint": "4x chains + 2 straps, gates pinned",
+        "confidence": 0.92,
+    },
     "hire_docket": {
         "machine": "EX-04 Cat 330",
         "hours": 6.5,

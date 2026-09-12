@@ -19,7 +19,7 @@ const TAB_LABELS: Record<Tab, string> = {
 
 const NDI_METHODS = ["visual", "UT", "MT", "PT", "RT"] as const;
 
-interface JobSelectProps {
+export interface JobSelectProps {
   label: string;
   value: string;
   onChange: (v: string) => void;
@@ -27,8 +27,8 @@ interface JobSelectProps {
   testId?: string;
 }
 
-/** Shared job picker for shop forms — active jobs first, done last. */
-function JobSelect({ label, value, onChange, allowNone = false, testId }: JobSelectProps) {
+/** Shared job picker for pack forms. */
+export function JobSelect({ label, value, onChange, allowNone = false, testId }: JobSelectProps) {
   const jobs = useLoad(() => api<JobRow[]>("/jobs"));
   return (
     <label className="bf-label" style={{ display: "block", marginBottom: 12 }}>

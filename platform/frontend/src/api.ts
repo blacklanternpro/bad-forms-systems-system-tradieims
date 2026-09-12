@@ -318,3 +318,80 @@ export interface OffcutRow {
   status: "available" | "allocated" | "scrapped";
   created_at: string;
 }
+
+/* ------------------------------- Fleet pack ------------------------------- */
+
+export interface FleetAsset {
+  id: string;
+  kind: string;
+  name: string;
+  rego: string | null;
+  yard: string | null;
+  meter_hours: string;
+  meta: { code?: string };
+  carrier_id: string | null;
+  carrier_name: string | null;
+  prestart_today: "pass" | "fail" | null;
+  hours_to_service: string | null;
+}
+
+export interface DueService {
+  plan_id: string;
+  plan_name: string;
+  interval_hours: string;
+  last_service_hours: string;
+  asset_id: string;
+  asset_name: string;
+  yard: string | null;
+  meter_hours: string;
+  meta: { code?: string };
+  hours_over: string;
+}
+
+export interface CorrectiveActionRow {
+  id: string;
+  code: string;
+  title: string;
+  detail: string | null;
+  source: "prestart" | "audit" | "incident" | "manual";
+  status: "open" | "closed";
+  closed_note: string | null;
+  asset_name: string | null;
+  created_at: string;
+}
+
+export interface WorkshopQueue {
+  due_services: DueService[];
+  open_corrective_actions: CorrectiveActionRow[];
+}
+
+export interface FloatRow {
+  id: string;
+  code: string;
+  asset_name: string;
+  meta: { code?: string };
+  job_code: string | null;
+  from_yard: string;
+  to_site: string;
+  float_date: string;
+  km: string;
+  mobilisation_cents: number;
+  cents_per_km: number;
+  charge_cents: number;
+  status: "planned" | "completed" | "cancelled";
+}
+
+export interface EvidenceItem {
+  outcome: string;
+  kind: string;
+  summary: string;
+  asset_name: string | null;
+  date: string;
+  source: "vault" | "prestarts" | "workshop" | "corrective_actions";
+}
+
+export interface EvidenceVault {
+  outcomes: Record<string, string>;
+  counts: Record<string, number>;
+  items: EvidenceItem[];
+}

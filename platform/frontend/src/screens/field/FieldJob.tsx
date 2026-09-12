@@ -9,12 +9,16 @@ import { useAction, useLoad } from "../../hooks";
 import { DocketSheet, PrestartSheet } from "../civil/FieldCab";
 import { RaiseVariation } from "../trades/Variations";
 
-const CAPTURE_TYPES = [
-  { value: "receipt", label: "RECEIPT / SUPPLIER INVOICE" },
-  { value: "voice_timesheet", label: "VOICE TIMESHEET" },
-  { value: "prestart", label: "PRE-START" },
-  { value: "incident", label: "INCIDENT" },
-] as const;
+function captureTypes(): { value: string; label: string }[] {
+  const types = [
+    { value: "receipt", label: "RECEIPT / SUPPLIER INVOICE" },
+    { value: "voice_timesheet", label: "VOICE TIMESHEET" },
+    { value: "prestart", label: "PRE-START" },
+    { value: "incident", label: "INCIDENT" },
+  ];
+  if (moduleLive("fleet")) types.push({ value: "load_restraint", label: "LOAD RESTRAINT PHOTO" });
+  return types;
+}
 
 /** The job pack: gate code, who's on, drawings, stages, hours, capture. */
 export default function FieldJob() {
@@ -173,7 +177,7 @@ export default function FieldJob() {
             <label className="bf-label" style={{ display: "block", marginBottom: 12 }}>
               WHAT IS IT
               <select value={capType} onChange={(e) => setCapType(e.target.value)} data-testid="capture-type" style={{ display: "block", width: "100%", marginTop: 4 }}>
-                {CAPTURE_TYPES.map((t) => (
+                {captureTypes().map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
               </select>
