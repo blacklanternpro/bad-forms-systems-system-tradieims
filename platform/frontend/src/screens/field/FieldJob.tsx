@@ -12,12 +12,12 @@ import { RaiseVariation } from "../trades/Variations";
 
 function captureTypes(): { value: string; label: string }[] {
   const types = [
-    { value: "receipt", label: "RECEIPT / SUPPLIER INVOICE" },
-    { value: "voice_timesheet", label: "VOICE TIMESHEET" },
-    { value: "prestart", label: "PRE-START" },
-    { value: "incident", label: "INCIDENT" },
+    { value: "receipt", label: "Receipt / supplier invoice" },
+    { value: "voice_timesheet", label: "Voice timesheet" },
+    { value: "prestart", label: "Pre-start" },
+    { value: "incident", label: "Incident" },
   ];
-  if (moduleLive("fleet")) types.push({ value: "load_restraint", label: "LOAD RESTRAINT PHOTO" });
+  if (moduleLive("fleet")) types.push({ value: "load_restraint", label: "Load restraint photo" });
   return types;
 }
 
@@ -35,9 +35,9 @@ export default function FieldJob() {
   const [capResult, setCapResult] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  if (pack.loading) return <LoadingView label="OPENING JOB PACK" />;
+  if (pack.loading) return <LoadingView label="Opening job pack" />;
   if (pack.error) return <ErrorView message={pack.error} onRetry={pack.reload} />;
-  if (!pack.data) return <EmptyView title="JOB NOT FOUND" />;
+  if (!pack.data) return <EmptyView title="Job not found" />;
 
   const p = pack.data;
   const clocked = p.open_time_entry !== null;
@@ -79,7 +79,7 @@ export default function FieldJob() {
   return (
     <div>
       <button className="bf-label" onClick={() => nav("/field")} style={{ background: "none", border: 0, cursor: "pointer", padding: "4px 0", marginBottom: 8, minHeight: "var(--tap-min)" }}>
-        ← BOARD
+        ← Board
       </button>
       <header style={{ marginBottom: 6 }}>
         <span className="bf-mono" style={{ fontSize: 13, color: "var(--ink-mute)" }}>{p.job.code}</span>
@@ -106,23 +106,23 @@ export default function FieldJob() {
 
       <div style={{ display: "grid", gap: 8, margin: "18px 0" }}>
         <Button kind={clocked ? "danger" : "mark"} full disabled={act.busy} onClick={() => clock(clocked ? "stop" : "start")} testId="clock">
-          {clocked ? "CLOCK OFF" : "CLOCK ON"}
+          {clocked ? "Clock off" : "Clock on"}
         </Button>
         <Button kind="accent" full onClick={() => { setCapResult(null); setCapOpen(true); }} testId="capture-open">
-          CAPTURE PAPERWORK
+          Capture paperwork
         </Button>
         {moduleLive("trades") && (
           <Button kind="quiet" full onClick={() => setVarOpen(true)} testId="variation-open">
-            RAISE VARIATION
+            Raise variation
           </Button>
         )}
         {moduleLive("civil") && (
           <>
             <Button kind="quiet" full onClick={() => setPreOpen(true)} testId="prestart-open">
-              PRE-START
+              Pre-start
             </Button>
             <Button kind="quiet" full onClick={() => setDockOpen(true)} testId="docket-open">
-              HIRE DOCKET
+              Hire docket
             </Button>
           </>
         )}
@@ -136,9 +136,9 @@ export default function FieldJob() {
         </>
       )}
 
-      <h3 className="bf-label">STAGES</h3>
+      <h3 className="bf-h3">Stages</h3>
       {p.stages.length === 0 ? (
-        <EmptyView title="NO STAGES ON THIS JOB" />
+        <EmptyView title="No stages on this job" />
       ) : (
         <ol style={{ margin: "6px 0 18px", padding: 0, listStyle: "none" }}>
           {p.stages.map((s) => (
@@ -147,7 +147,7 @@ export default function FieldJob() {
               <span style={{ flex: 1, fontSize: 14 }}>{s.name}</span>
               {!s.completed_at && (
                 <Button kind="quiet" disabled={act.busy} onClick={() => stageDone(s.id)} testId={`stage-${s.sort}`}>
-                  SIGN OFF
+                  Sign off
                 </Button>
               )}
             </li>
@@ -155,9 +155,9 @@ export default function FieldJob() {
         </ol>
       )}
 
-      <h3 className="bf-label">DRAWINGS</h3>
+      <h3 className="bf-h3">Drawings</h3>
       {p.drawings.length === 0 ? (
-        <EmptyView title="NO DRAWINGS ATTACHED" />
+        <EmptyView title="No drawings attached" />
       ) : (
         <ul style={{ margin: "6px 0 0", padding: 0, listStyle: "none" }}>
           {p.drawings.map((doc) => (
@@ -170,7 +170,7 @@ export default function FieldJob() {
         </ul>
       )}
 
-      <Sheet title="CAPTURE" open={capOpen} onClose={() => setCapOpen(false)} testId="capture-sheet">
+      <Sheet title="Capture" open={capOpen} onClose={() => setCapOpen(false)} testId="capture-sheet">
         {capResult ? (
           <div style={{ textAlign: "center", padding: "12px 0" }}>
             <Stamp
@@ -180,13 +180,13 @@ export default function FieldJob() {
             />
             <p className="bf-mono" style={{ fontSize: 13, marginTop: 10 }}>{capResult}</p>
             <div style={{ marginTop: 14 }}>
-              <Button kind="mark" full onClick={() => setCapOpen(false)}>DONE</Button>
+              <Button kind="mark" full onClick={() => setCapOpen(false)}>Done</Button>
             </div>
           </div>
         ) : (
           <div>
             <label className="bf-label" style={{ display: "block", marginBottom: 12 }}>
-              WHAT IS IT
+              What is it
               <select value={capType} onChange={(e) => setCapType(e.target.value)} data-testid="capture-type" style={{ display: "block", width: "100%", marginTop: 4 }}>
                 {captureTypes().map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
@@ -194,11 +194,11 @@ export default function FieldJob() {
               </select>
             </label>
             <label className="bf-label" style={{ display: "block", marginBottom: 16 }}>
-              PHOTO / FILE
+              Photo / file
               <input ref={fileRef} type="file" accept="image/*,audio/*" capture="environment" data-testid="capture-file" style={{ display: "block", width: "100%", marginTop: 4 }} />
             </label>
             <Button kind="mark" full disabled={act.busy} onClick={submitCapture} testId="capture-submit">
-              {act.busy ? "READING…" : "CAPTURE"}
+              {act.busy ? "Reading…" : "Capture"}
             </Button>
           </div>
         )}

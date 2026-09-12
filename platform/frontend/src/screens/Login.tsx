@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, setSession, type Session } from "../api";
 import Button from "../components/Button";
+import { Chip } from "../components/Chrome";
 import Field from "../components/Field";
 
 type Mode = "office" | "crew";
@@ -56,50 +57,42 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ width: "100%", maxWidth: 400 }}>
-        <h1 className="bf-h1" style={{ fontSize: 22, marginBottom: 4 }}>BAD FORM SYSTEMS</h1>
-        <p className="bf-label" style={{ marginBottom: 24 }}>SIGN IN</p>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div className="bf-ticket" style={{ width: "100%", maxWidth: 400 }}>
+        <p className="bf-label" style={{ margin: "0 0 6px" }}>
+          Operations IMS
+        </p>
+        <h1 className="bf-h1" style={{ marginBottom: 20 }}>
+          BAD FORM Systems
+        </h1>
 
-        <div role="tablist" aria-label="Login mode" style={{ display: "flex", gap: 4, marginBottom: 20 }}>
+        <div role="tablist" aria-label="Login mode" className="bf-chip-row" style={{ marginBottom: 20 }}>
           {(["office", "crew"] as Mode[]).map((m) => (
-            <button
+            <Chip
               key={m}
               role="tab"
-              aria-selected={mode === m}
-              data-testid={`mode-${m}`}
-              className="bf-label"
+              testId={`mode-${m}`}
+              active={mode === m}
               onClick={() => {
                 setMode(m);
                 setError(null);
               }}
-              style={{
-                flex: 1,
-                padding: "10px 0",
-                minHeight: "var(--tap-min)",
-                cursor: "pointer",
-                background: mode === m ? "var(--mark)" : "var(--ground-raise)",
-                color: mode === m ? "var(--mark-ink)" : "var(--ink-mute)",
-                border: "1px solid var(--rule-strong)",
-                borderRadius: "var(--radius)",
-              }}
-            >
-              {m === "office" ? "OFFICE" : "CREW PIN"}
-            </button>
+              label={m === "office" ? "Office" : "Crew PIN"}
+            />
           ))}
         </div>
 
         {mode === "office" ? (
           <form onSubmit={submitOffice}>
-            <Field label="LOGIN" type="text" value={email} onChange={setEmail} required testId="login-email" />
-            <Field label="PASSWORD" type="password" value={password} onChange={setPassword} required testId="login-password" />
+            <Field label="Login" type="text" value={email} onChange={setEmail} required testId="login-email" />
+            <Field label="Password" type="password" value={password} onChange={setPassword} required testId="login-password" />
             <Button type="submit" kind="mark" full disabled={busy} testId="login-submit">
-              {busy ? "SIGNING IN…" : "SIGN IN"}
+              {busy ? "Signing in…" : "Sign in"}
             </Button>
           </form>
         ) : (
           <div>
-            <Field label="YARD CODE" value={orgSlug} onChange={setOrgSlug} placeholder="e.g. demo" required testId="login-slug" />
+            <Field label="Yard code" value={orgSlug} onChange={setOrgSlug} placeholder="e.g. systems" required testId="login-slug" />
             <p className="bf-mono" aria-label="PIN entered" style={{ textAlign: "center", fontSize: 26, letterSpacing: "0.5em", minHeight: 38, margin: "8px 0 14px" }}>
               {"●".repeat(pin.length)}
               {"○".repeat(4 - pin.length)}
@@ -114,17 +107,8 @@ export default function Login() {
                     data-testid={`pin-${d}`}
                     disabled={busy || (d !== "⌫" && !orgSlug)}
                     onClick={() => void tapDigit(d)}
-                    style={{
-                      minHeight: 64,
-                      fontSize: 22,
-                      fontFamily: "var(--font-mono)",
-                      background: "var(--ground-raise)",
-                      color: "var(--ink)",
-                      border: "1px solid var(--rule-strong)",
-                      borderRadius: "var(--radius)",
-                      cursor: "pointer",
-                      opacity: busy || (d !== "⌫" && !orgSlug) ? 0.4 : 1,
-                    }}
+                    className="bf-btn"
+                    style={{ minHeight: 64, fontSize: 22, fontFamily: "var(--font-mono)", opacity: busy || (d !== "⌫" && !orgSlug) ? 0.4 : 1 }}
                   >
                     {d}
                   </button>
@@ -134,7 +118,6 @@ export default function Login() {
           </div>
         )}
 
-
         {import.meta.env.VITE_DEMO_HINT === "1" && mode === "office" && (
           <p data-testid="demo-hint" className="bf-mono" style={{ marginTop: 16, fontSize: 12, color: "var(--ink-mute)", textAlign: "center" }}>
             Demo: <strong>bad-form</strong> / <strong>systems</strong>
@@ -142,7 +125,7 @@ export default function Login() {
         )}
 
         {error && (
-          <p role="alert" data-testid="login-error" style={{ color: "var(--stamp-bad)", fontFamily: "var(--font-mono)", fontSize: 13, marginTop: 14, textAlign: "center" }}>
+          <p role="alert" data-testid="login-error" style={{ color: "var(--stamp-bad)", fontFamily: "var(--font-ui)", fontSize: 13, marginTop: 14, textAlign: "center" }}>
             {error}
           </p>
         )}

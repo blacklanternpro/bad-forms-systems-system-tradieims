@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type FieldBoard } from "../../api";
+import { Chip } from "../../components/Chrome";
 import { EmptyView, ErrorView, LoadingView } from "../../components/StatusViews";
 import Ticket from "../../components/Ticket";
 import { useLoad } from "../../hooks";
@@ -15,35 +16,23 @@ export default function FieldToday() {
 
   return (
     <div>
-      <div role="tablist" aria-label="Day" style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+      <div role="tablist" aria-label="Day" className="bf-chip-row" style={{ marginBottom: 16 }}>
         {(["today", "tomorrow"] as Day[]).map((d) => (
-          <button
+          <Chip
             key={d}
             role="tab"
-            aria-selected={day === d}
-            data-testid={`day-${d}`}
-            className="bf-label"
+            testId={`day-${d}`}
+            active={day === d}
             onClick={() => setDay(d)}
-            style={{
-              flex: 1,
-              padding: "12px 0",
-              minHeight: "var(--tap-min)",
-              cursor: "pointer",
-              background: day === d ? "var(--mark)" : "var(--ground-raise)",
-              color: day === d ? "var(--mark-ink)" : "var(--ink-mute)",
-              border: "1px solid var(--rule-strong)",
-              borderRadius: "var(--radius)",
-            }}
-          >
-            {d.toUpperCase()}
-          </button>
+            label={d === "today" ? "Today" : "Tomorrow"}
+          />
         ))}
       </div>
 
-      {board.loading && <LoadingView label="CHECKING THE BOARD" />}
+      {board.loading && <LoadingView label="Checking the board" />}
       {board.error && <ErrorView message={board.error} onRetry={board.reload} />}
       {board.data && board.data.jobs.length === 0 && (
-        <EmptyView title={day === "today" ? "NOTHING ON TODAY" : "NOTHING ON TOMORROW"} hint="If that doesn't look right, ring the office." />
+        <EmptyView title={day === "today" ? "Nothing on today" : "Nothing on tomorrow"} hint="If that doesn't look right, ring the office." />
       )}
       {board.data && board.data.jobs.length > 0 && (
         <div style={{ display: "grid", gap: 10 }}>
@@ -53,7 +42,7 @@ export default function FieldToday() {
               code={j.code}
               title={j.title}
               stamp={j.window ? { label: j.window, tone: "info" } : undefined}
-              meta={[{ label: "SITE", value: j.site_name ?? "—" }, { label: "ADDR", value: j.address ?? "—" }]}
+              meta={[{ label: "Site", value: j.site_name ?? "—" }, { label: "Addr", value: j.address ?? "—" }]}
               onClick={() => nav(`/field/jobs/${j.job_id}`)}
               testId={`field-${j.code}`}
             />

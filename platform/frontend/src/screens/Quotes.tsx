@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, money, type QuoteRow } from "../api";
 import Button from "../components/Button";
+import { PageHead } from "../components/Chrome";
 import Field from "../components/Field";
 import LedgerTable from "../components/LedgerTable";
 import Sheet from "../components/Sheet";
@@ -64,47 +65,46 @@ export default function Quotes() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-        <h2 className="bf-label" style={{ margin: 0 }}>QUOTES</h2>
-        <span style={{ marginLeft: "auto" }}>
-          <Button kind="mark" onClick={() => setCreating(true)} testId="new-quote">NEW QUOTE</Button>
-        </span>
-      </div>
+      <PageHead title="Quotes">
+        <Button kind="mark" onClick={() => setCreating(true)} testId="new-quote">
+          New quote
+        </Button>
+      </PageHead>
 
       {act.error && <ErrorView message={act.error} />}
-      {quotes.loading && <LoadingView label="PULLING QUOTES" />}
+      {quotes.loading && <LoadingView label="Pulling quotes" />}
       {quotes.error && <ErrorView message={quotes.error} onRetry={quotes.reload} />}
-      {quotes.data && quotes.data.length === 0 && <EmptyView title="NO QUOTES YET" hint="Raise the first one — it lands here as a draft." />}
+      {quotes.data && quotes.data.length === 0 && <EmptyView title="No quotes yet" hint="Raise the first one — it lands here as a draft." />}
       {quotes.data && quotes.data.length > 0 && (
         <LedgerTable<QuoteRow>
           testId="quotes-table"
           rows={quotes.data}
           rowKey={(q) => q.id}
-          empty="NO QUOTES"
+          empty="No quotes"
           columns={[
-            { key: "code", label: "CODE", render: (q) => <span className="bf-mono">{q.code}</span> },
-            { key: "title", label: "QUOTE", render: (q) => q.title },
-            { key: "client", label: "CLIENT", render: (q) => q.client_name ?? "—" },
+            { key: "code", label: "Code", render: (q) => <span className="bf-mono">{q.code}</span> },
+            { key: "title", label: "Quote", render: (q) => q.title },
+            { key: "client", label: "Client", render: (q) => q.client_name ?? "—" },
             {
               key: "status",
-              label: "STATUS",
+              label: "Status",
               render: (q) => {
                 const t = quoteTone(q);
                 return <Stamp label={t.label} tone={t.tone} />;
               },
             },
-            { key: "total", label: "TOTAL EX", align: "right", render: (q) => money(q.total_ex_cents) },
-            { key: "valid", label: "VALID TO", render: (q) => q.valid_until ?? "—" },
+            { key: "total", label: "Total ex", align: "right", render: (q) => money(q.total_ex_cents) },
+            { key: "valid", label: "Valid to", render: (q) => q.valid_until ?? "—" },
             {
               key: "act",
               label: "",
               render: (q) => (
                 <span style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
                   {q.status === "draft" && (
-                    <Button kind="accent" disabled={act.busy} onClick={() => send(q.id)} testId={`send-${q.code}`}>SEND</Button>
+                    <Button kind="accent" disabled={act.busy} onClick={() => send(q.id)} testId={`send-${q.code}`}>Send</Button>
                   )}
                   {q.status === "accepted" && (
-                    <Button kind="mark" disabled={act.busy} onClick={() => toJob(q.id)} testId={`tojob-${q.code}`}>TO JOB</Button>
+                    <Button kind="mark" disabled={act.busy} onClick={() => toJob(q.id)} testId={`tojob-${q.code}`}>To job</Button>
                   )}
                   <a className="bf-label" style={{ alignSelf: "center" }} href={`/api/quotes/${q.id}/pdf`} target="_blank" rel="noreferrer">PDF ↗</a>
                 </span>
@@ -114,9 +114,9 @@ export default function Quotes() {
         />
       )}
 
-      <Sheet title="NEW QUOTE" open={creating} onClose={() => setCreating(false)} testId="new-quote-sheet">
-        <Field label="TITLE" value={title} onChange={setTitle} required testId="quote-title" />
-        <p className="bf-label" style={{ margin: "4px 0 8px" }}>LINES</p>
+      <Sheet title="New quote" open={creating} onClose={() => setCreating(false)} testId="new-quote-sheet">
+        <Field label="Title" value={title} onChange={setTitle} required testId="quote-title" />
+        <p className="bf-label" style={{ margin: "4px 0 8px" }}>Lines</p>
         {lines.map((l, i) => (
           <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 70px 100px", gap: 8, marginBottom: 8 }}>
             <input aria-label={`Line ${i + 1} description`} placeholder="Description" value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} />
@@ -125,11 +125,11 @@ export default function Quotes() {
           </div>
         ))}
         <Button kind="quiet" onClick={() => setLines((ls) => [...ls, { description: "", qty: "1", unit: "" }])} testId="add-line">
-          + LINE
+          + Line
         </Button>
         <div style={{ marginTop: 14 }}>
           <Button kind="mark" full disabled={act.busy || !title.trim()} onClick={create} testId="quote-create">
-            {act.busy ? "RAISING…" : "RAISE QUOTE"}
+            {act.busy ? "Raising…" : "Raise quote"}
           </Button>
         </div>
       </Sheet>

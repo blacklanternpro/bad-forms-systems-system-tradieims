@@ -19,7 +19,7 @@ interface KioskFrameProps {
 function KioskFrame({ heading, sub, onBack, children }: KioskFrameProps) {
   return (
     <div className="bf-page" style={{ maxWidth: 720, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <header style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 0 14px", borderBottom: "2px solid var(--ink)" }}>
+      <header style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 0 14px", borderBottom: "var(--hair) solid var(--rule)" }}>
         {onBack && (
           <button
             data-testid="kiosk-back"
@@ -88,9 +88,9 @@ function KioskPin({ onSignedIn }: KioskPinProps) {
 
   if (!yardSet) {
     return (
-      <KioskFrame heading="SET UP THIS KIOSK" sub="Enter the yard code once — this tablet remembers it.">
+      <KioskFrame heading="Set up this kiosk" sub="Enter the yard code once — this tablet remembers it.">
         <label className="bf-label" style={{ display: "block" }}>
-          YARD CODE
+          Yard code
           <input
             data-testid="kiosk-yard"
             value={yard}
@@ -100,7 +100,7 @@ function KioskPin({ onSignedIn }: KioskPinProps) {
           />
         </label>
         <KioskButton
-          label="LOCK IT IN"
+          label="Lock it in"
           hint="Stored on this device"
           tone="mark"
           testId="kiosk-yard-save"
@@ -115,7 +115,7 @@ function KioskPin({ onSignedIn }: KioskPinProps) {
   }
 
   return (
-    <KioskFrame heading={`${yard.toUpperCase()} KIOSK`} sub="Tap your PIN">
+    <KioskFrame heading={`${yard} kiosk`} sub="Tap your PIN">
       <p className="bf-mono" aria-label="PIN entered" style={{ textAlign: "center", fontSize: 34, letterSpacing: "0.5em", minHeight: 46, margin: 0 }}>
         {"●".repeat(pin.length)}
         {"○".repeat(4 - pin.length)}
@@ -163,7 +163,7 @@ function KioskPin({ onSignedIn }: KioskPinProps) {
         }}
         style={{ background: "none", border: 0, color: "var(--ink-mute)", cursor: "pointer", minHeight: "var(--tap-min)", justifySelf: "center" }}
       >
-        CHANGE YARD
+        Change yard
       </button>
     </KioskFrame>
   );
@@ -181,9 +181,9 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [photoIn, setPhotoIn] = useState(false);
 
-  if (pack.loading) return <KioskFrame heading="OPENING JOB" onBack={onBack}><LoadingView label="OPENING JOB" /></KioskFrame>;
-  if (pack.error) return <KioskFrame heading="JOB" onBack={onBack}><ErrorView message={pack.error} onRetry={pack.reload} /></KioskFrame>;
-  if (!pack.data) return <KioskFrame heading="JOB" onBack={onBack}><EmptyView title="JOB NOT FOUND" /></KioskFrame>;
+  if (pack.loading) return <KioskFrame heading="Opening job" onBack={onBack}><LoadingView label="Opening job" /></KioskFrame>;
+  if (pack.error) return <KioskFrame heading="Job" onBack={onBack}><ErrorView message={pack.error} onRetry={pack.reload} /></KioskFrame>;
+  if (!pack.data) return <KioskFrame heading="Job" onBack={onBack}><EmptyView title="Job not found" /></KioskFrame>;
 
   const p = pack.data;
   const done = p.stages.filter((s) => s.completed_at).length;
@@ -211,7 +211,7 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
 
   return (
     <KioskFrame heading={p.job.code} sub={p.job.title} onBack={onBack}>
-      {p.stages.length === 0 && <EmptyView title="NO STAGES ON THIS JOB" hint="The office applies an ITP from the job page." />}
+      {p.stages.length === 0 && <EmptyView title="No stages on this job" hint="The office applies an ITP from the job page." />}
 
       {p.stages.length > 0 && !next && (
         <div style={{ textAlign: "center", padding: "30px 0" }}>
@@ -223,7 +223,7 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
       {next && (
         <>
           <div>
-            <p className="bf-label" style={{ margin: "0 0 6px" }}>STAGE {done + 1} OF {p.stages.length}</p>
+            <p className="bf-label" style={{ margin: "0 0 6px" }}>Stage {done + 1} of {p.stages.length}</p>
             <p style={{ margin: 0, fontSize: 30, fontWeight: 700 }}>{next.name}</p>
             {next.requires_photo && (
               <p style={{ margin: "8px 0 0" }}>
@@ -233,14 +233,14 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
           </div>
           {act.error && <ErrorView message={act.error} />}
           <KioskButton
-            label={act.busy ? "WORKING…" : "SIGN OFF"}
+            label={act.busy ? "Working…" : "Sign off"}
             hint={`Marks "${next.name}" complete`}
             tone="mark"
             testId="kiosk-signoff"
             onClick={signOff}
           />
           <KioskButton
-            label="PHOTO"
+            label="Photo"
             hint={next.requires_photo ? "This hold point needs one before sign-off" : "Evidence photo onto the job"}
             testId="kiosk-photo"
             onClick={() => fileRef.current?.click()}
@@ -276,11 +276,11 @@ export default function Kiosk() {
   if (jobId) return <KioskJob jobId={jobId} onBack={() => setJobId(null)} />;
 
   return (
-    <KioskFrame heading={`${session.org.name} — SHOP FLOOR`} sub={`Signed on as ${session.user.name}`}>
-      {board.loading && <LoadingView label="CHECKING THE BOARD" />}
+    <KioskFrame heading={`${session.org.name} — shop floor`} sub={`Signed on as ${session.user.name}`}>
+      {board.loading && <LoadingView label="Checking the board" />}
       {board.error && <ErrorView message={board.error} onRetry={board.reload} />}
       {board.data && board.data.jobs.length === 0 && (
-        <EmptyView title="NOTHING ON THE BOARD TODAY" hint="If that doesn't look right, ring the office." />
+        <EmptyView title="Nothing on the board today" hint="If that doesn't look right, ring the office." />
       )}
       {board.data &&
         board.data.jobs.map((j) => (
@@ -298,7 +298,7 @@ export default function Kiosk() {
         onClick={() => nav("/field")}
         style={{ background: "none", border: 0, color: "var(--ink-mute)", cursor: "pointer", minHeight: "var(--tap-min)", justifySelf: "center", marginTop: 10 }}
       >
-        LEAVE KIOSK MODE
+        Leave kiosk mode
       </button>
     </KioskFrame>
   );

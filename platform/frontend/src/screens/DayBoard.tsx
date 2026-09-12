@@ -19,9 +19,9 @@ export default function DayBoard() {
   const board = useLoad(() => api<Board>(`/dayboard${date ? `?date_str=${date}` : ""}`), [date]);
   const act = useAction();
 
-  if (board.loading) return <LoadingView label="SETTING THE BOARD" />;
+  if (board.loading) return <LoadingView label="Setting the board" />;
   if (board.error) return <ErrorView message={board.error} onRetry={board.reload} />;
-  if (!board.data) return <EmptyView title="NO BOARD" />;
+  if (!board.data) return <EmptyView title="No board" />;
 
   const b = board.data;
   const crewFor = (jobId: string) => b.assignments.filter((a) => a.job_id === jobId);
@@ -29,7 +29,9 @@ export default function DayBoard() {
   return (
     <div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", marginBottom: 16 }}>
-        <h2 className="bf-label" style={{ margin: 0 }}>DAY BOARD — {b.date}</h2>
+        <h2 className="bf-h2" style={{ margin: 0, fontSize: 20 }}>
+          Day board — {b.date}
+        </h2>
         <input
           type="date"
           aria-label="Board date"
@@ -48,7 +50,7 @@ export default function DayBoard() {
             })
           }
         >
-          COPY YESTERDAY
+          Copy yesterday
         </Button>
         <a
           className="bf-label"
@@ -56,7 +58,7 @@ export default function DayBoard() {
           target="_blank"
           rel="noreferrer"
         >
-          PRINT DAY SHEET ↗
+          Print day sheet ↗
         </a>
       </div>
 
@@ -64,12 +66,12 @@ export default function DayBoard() {
 
       {b.away.length > 0 && (
         <p className="bf-mono" style={{ fontSize: 13, color: "var(--stamp-warn)", marginBottom: 12 }}>
-          AWAY: {b.away.map((a) => `${a.user_name} (${a.kind})`).join(", ")}
+          Away: {b.away.map((a) => `${a.user_name} (${a.kind})`).join(", ")}
         </p>
       )}
 
       {b.jobs.length === 0 ? (
-        <EmptyView title="EMPTY BOARD" hint="No crews assigned for this date. Assign from a job page, or copy yesterday's board." />
+        <EmptyView title="Empty board" hint="No crews assigned for this date. Assign from a job page, or copy yesterday's board." />
       ) : (
         <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
           {b.jobs.map((j) => (
@@ -79,8 +81,8 @@ export default function DayBoard() {
               title={j.title}
               stamp={{ label: j.status.toUpperCase(), tone: j.status === "live" ? "ok" : "info" }}
               meta={[
-                { label: "SITE", value: j.site_name ?? j.client_name ?? "—" },
-                { label: "CREW", value: crewFor(j.id).map((a) => a.user_name).join(", ") || "—" },
+                { label: "Site", value: j.site_name ?? j.client_name ?? "—" },
+                { label: "Crew", value: crewFor(j.id).map((a) => a.user_name).join(", ") || "—" },
               ]}
               onClick={() => nav(`/jobs/${j.id}`)}
               testId={`board-${j.code}`}

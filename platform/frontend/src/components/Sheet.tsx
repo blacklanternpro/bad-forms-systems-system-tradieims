@@ -12,28 +12,17 @@ export interface SheetProps {
 export default function Sheet({ title, open, onClose, children, testId }: SheetProps) {
   if (!open) return null;
   return (
-    <div
-      onClick={onClose}
-      style={{ position: "fixed", inset: 0, background: "rgba(20,18,12,0.45)", zIndex: 40, display: "flex", alignItems: "flex-end" }}
-    >
-      <section
-        data-testid={testId}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "var(--ground)",
-          borderTop: "2px solid var(--ink)",
-          width: "100%",
-          maxHeight: "88vh",
-          overflowY: "auto",
-          padding: "16px 16px calc(16px + env(safe-area-inset-bottom))",
-        }}
-      >
+    <div className="bf-sheet" onClick={onClose} role="presentation">
+      <section className="bf-sheet__panel" data-testid={testId} onClick={(e) => e.stopPropagation()}>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h2 className="bf-label" style={{ fontSize: 12 }}>{title}</h2>
+          <h2 className="bf-h2" style={{ fontSize: 18 }}>
+            {title}
+          </h2>
           <button
             data-testid={testId ? `${testId}-close` : undefined}
             onClick={onClose}
-            style={{ background: "none", border: 0, color: "var(--ink-mute)", fontSize: 22, cursor: "pointer", minWidth: "var(--tap-min)", minHeight: "var(--tap-min)" }}
+            className="bf-quiet-btn"
+            style={{ border: 0, fontSize: 22, minWidth: "var(--tap-min)" }}
             aria-label="Close"
           >
             ×

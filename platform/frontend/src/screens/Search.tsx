@@ -10,31 +10,31 @@ export default function Search() {
   const q = params.get("q") ?? "";
   const hits = useLoad(() => api<SearchHits>(`/search?q=${encodeURIComponent(q)}`), [q]);
 
-  if (!q) return <EmptyView title="TYPE SOMETHING TO SEARCH" hint="Jobs, clients, quotes and POs are all indexed." />;
-  if (hits.loading) return <LoadingView label={`SEARCHING "${q.toUpperCase()}"`} />;
+  if (!q) return <EmptyView title="Type something to search" hint="Jobs, clients, quotes and POs are all indexed." />;
+  if (hits.loading) return <LoadingView label={`Searching “${q}”`} />;
   if (hits.error) return <ErrorView message={hits.error} onRetry={hits.reload} />;
-  if (!hits.data) return <EmptyView title="NO RESULTS" />;
+  if (!hits.data) return <EmptyView title="No results" />;
 
   const h = hits.data;
   const total = h.jobs.length + h.clients.length + h.quotes.length + h.pos.length;
 
   return (
     <div>
-      <h2 className="bf-label" style={{ marginBottom: 12 }}>
-        SEARCH — "{q}" · {total} HIT{total === 1 ? "" : "S"}
+      <h2 className="bf-h2" style={{ marginBottom: 12, fontSize: 20 }}>
+        Search — “{q}” · {total} hit{total === 1 ? "" : "s"}
       </h2>
       {total === 0 ? (
-        <EmptyView title="NOTHING MATCHED" hint="Try a job code, client name, or quote title." />
+        <EmptyView title="Nothing matched" hint="Try a job code, client name, or quote title." />
       ) : (
         <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
           {h.jobs.map((j) => (
-            <Ticket key={j.id} code={j.code} title={j.title} stamp={{ label: "JOB", tone: "info" }} onClick={() => nav(`/jobs/${j.id}`)} />
+            <Ticket key={j.id} code={j.code} title={j.title} stamp={{ label: "Job", tone: "info" }} onClick={() => nav(`/jobs/${j.id}`)} />
           ))}
           {h.quotes.map((x) => (
-            <Ticket key={x.id} code={x.code} title={x.title} stamp={{ label: "QUOTE", tone: "info" }} onClick={() => nav("/quotes")} />
+            <Ticket key={x.id} code={x.code} title={x.title} stamp={{ label: "Quote", tone: "info" }} onClick={() => nav("/quotes")} />
           ))}
           {h.clients.map((c) => (
-            <Ticket key={c.id} code="CLIENT" title={c.name} stamp={{ label: "CLIENT", tone: "mute" }} />
+            <Ticket key={c.id} code="Client" title={c.name} stamp={{ label: "Client", tone: "mute" }} />
           ))}
           {h.pos.map((p) => (
             <Ticket key={p.id} code={p.code} title={p.supplier} stamp={{ label: "PO", tone: "mute" }} />

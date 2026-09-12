@@ -27,7 +27,7 @@ export default function Plant() {
       plant.reload();
     });
 
-  if (plant.loading) return <LoadingView label="OPENING THE PLANT REGISTER" />;
+  if (plant.loading) return <LoadingView label="Opening the plant register" />;
   if (plant.error) return <ErrorView message={plant.error} onRetry={plant.reload} />;
 
   const rows = plant.data ?? [];
@@ -35,15 +35,17 @@ export default function Plant() {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-        <h2 className="bf-label" style={{ margin: 0 }}>PLANT REGISTER</h2>
+        <h2 className="bf-h2" style={{ margin: 0, fontSize: 20 }}>
+          Plant register
+        </h2>
         <span style={{ marginLeft: "auto" }}>
-          <Button kind="mark" onClick={() => setAdding(true)} testId="add-plant">ADD MACHINE</Button>
+          <Button kind="mark" onClick={() => setAdding(true)} testId="add-plant">Add machine</Button>
         </span>
       </div>
       {act.error && <ErrorView message={act.error} />}
 
       {rows.length === 0 ? (
-        <EmptyView title="NO PLANT REGISTERED" hint="Add the first machine — rates and pre-starts hang off it." />
+        <EmptyView title="No plant registered" hint="Add the first machine — rates and pre-starts hang off it." />
       ) : (
         <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
           {rows.map((p) => (
@@ -53,15 +55,15 @@ export default function Plant() {
               title={p.name}
               stamp={
                 p.prestart_today === "pass"
-                  ? { label: "PRE-START OK", tone: "ok" }
+                  ? { label: "Pre-start ok", tone: "ok" }
                   : p.prestart_today === "fail"
-                    ? { label: "BLOCKED", tone: "bad" }
-                    : { label: "NO PRE-START", tone: "warn" }
+                    ? { label: "Blocked", tone: "bad" }
+                    : { label: "No pre-start", tone: "warn" }
               }
               meta={[
-                { label: "METER", value: `${Number(p.meter_hours).toFixed(1)} h` },
-                { label: "YARD", value: p.yard ?? "—" },
-                { label: "REGO", value: p.rego ?? "—" },
+                { label: "Meter", value: `${Number(p.meter_hours).toFixed(1)} h` },
+                { label: "Yard", value: p.yard ?? "—" },
+                { label: "Rego", value: p.rego ?? "—" },
               ]}
               onClick={() => setOpen(p)}
               testId={`plant-${p.meta.code ?? p.id}`}
@@ -70,15 +72,15 @@ export default function Plant() {
         </div>
       )}
 
-      <Sheet title={open ? `${open.meta.code ?? ""} — HIRE RATES` : ""} open={open !== null} onClose={() => setOpen(null)} testId="rates-sheet">
+      <Sheet title={open ? `${open.meta.code ?? ""} — hire rates` : ""} open={open !== null} onClose={() => setOpen(null)} testId="rates-sheet">
         {open && <RatesPanel plantId={open.id} />}
       </Sheet>
 
-      <Sheet title="ADD MACHINE" open={adding} onClose={() => setAdding(false)} testId="add-plant-sheet">
-        <Field label="FLEET CODE (e.g. EX-05)" value={code} onChange={setCode} required testId="plant-code" />
-        <Field label="NAME" value={name} onChange={setName} required testId="plant-name" />
+      <Sheet title="Add machine" open={adding} onClose={() => setAdding(false)} testId="add-plant-sheet">
+        <Field label="Fleet code (e.g. EX-05)" value={code} onChange={setCode} required testId="plant-code" />
+        <Field label="Name" value={name} onChange={setName} required testId="plant-name" />
         <label className="bf-label" style={{ display: "block", marginBottom: 12 }}>
-          KIND
+          Kind
           <select value={kind} onChange={(e) => setKind(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4 }}>
             {["excavator", "truck", "roller", "loader", "attachment"].map((k) => (
               <option key={k} value={k}>{k}</option>
@@ -86,7 +88,7 @@ export default function Plant() {
           </select>
         </label>
         <Button kind="mark" full disabled={act.busy || !code.trim() || !name.trim()} onClick={create} testId="plant-create">
-          {act.busy ? "ADDING…" : "ADD"}
+          {act.busy ? "Adding…" : "Add"}
         </Button>
       </Sheet>
     </div>
@@ -116,13 +118,13 @@ function RatesPanel({ plantId }: RatesPanelProps) {
       rates.reload();
     });
 
-  if (rates.loading) return <LoadingView label="RATES" />;
+  if (rates.loading) return <LoadingView label="Rates" />;
   if (rates.error) return <ErrorView message={rates.error} onRetry={rates.reload} />;
 
   return (
     <div>
       {(rates.data ?? []).length === 0 ? (
-        <EmptyView title="NO RATES SET" hint="Dockets can't be raised for this machine until a rate exists." />
+        <EmptyView title="No rates set" hint="Dockets can't be raised for this machine until a rate exists." />
       ) : (
         <ul style={{ margin: "0 0 16px", padding: 0, listStyle: "none" }}>
           {(rates.data ?? []).map((rt) => (
@@ -137,19 +139,19 @@ function RatesPanel({ plantId }: RatesPanelProps) {
       )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
         <label className="bf-label">
-          MODE
+          Mode
           <select value={mode} onChange={(e) => setMode(e.target.value as "wet" | "dry")} style={{ display: "block", width: "100%", marginTop: 4 }}>
             <option value="wet">wet (with operator)</option>
             <option value="dry">dry (machine only)</option>
           </select>
         </label>
-        <Field label="RATE $/H" type="number" value={rate} onChange={setRate} testId="rate-hourly" />
-        <Field label="MIN HOURS" type="number" value={minH} onChange={setMinH} testId="rate-min" />
-        <Field label="STANDBY $/H" type="number" value={standby} onChange={setStandby} testId="rate-standby" />
+        <Field label="Rate $/h" type="number" value={rate} onChange={setRate} testId="rate-hourly" />
+        <Field label="Min hours" type="number" value={minH} onChange={setMinH} testId="rate-min" />
+        <Field label="Standby $/h" type="number" value={standby} onChange={setStandby} testId="rate-standby" />
       </div>
       {act.error && <ErrorView message={act.error} />}
       <Button kind="mark" full disabled={act.busy || !rate} onClick={save} testId="rate-save">
-        {act.busy ? "SAVING…" : "SET RATE"}
+        {act.busy ? "Saving…" : "Set rate"}
       </Button>
     </div>
   );

@@ -45,16 +45,21 @@ export default function Inbox() {
       queue.reload();
     });
 
-  if (queue.loading) return <LoadingView label="OPENING THE INBOX" />;
+  if (queue.loading) return <LoadingView label="Opening the inbox" />;
   if (queue.error) return <ErrorView message={queue.error} onRetry={queue.reload} />;
 
   const items = queue.data ?? [];
 
   return (
     <div>
-      <h2 className="bf-label" style={{ marginBottom: 12 }}>INBOX — CAPTURES WAITING FOR A LOOK</h2>
+      <h2 className="bf-h2" style={{ marginBottom: 12, fontSize: 20 }}>
+        Inbox
+      </h2>
+      <p className="bf-label" style={{ margin: "-8px 0 16px" }}>
+        Captures waiting for a look
+      </p>
       {items.length === 0 ? (
-        <EmptyView title="INBOX CLEAR" hint="Every capture has been verified or fast-tracked. Nothing is stuck." />
+        <EmptyView title="Inbox clear" hint="Every capture has been verified or fast-tracked. Nothing is stuck." />
       ) : (
         <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
           {items.map((c) => {
@@ -62,15 +67,15 @@ export default function Inbox() {
             return (
               <Ticket
                 key={c.id}
-                code={c.job_code ?? "UNALLOCATED"}
+                code={c.job_code ?? "Unallocated"}
                 title={c.capture_type.replace(/_/g, " ")}
                 stamp={{
-                  label: `CONF ${Number(c.confidence).toFixed(2)}`,
+                  label: `Conf ${Number(c.confidence).toFixed(2)}`,
                   tone: Number(c.confidence) >= 0.8 ? "ok" : Number(c.confidence) >= 0.5 ? "warn" : "bad",
                 }}
                 meta={[
-                  { label: "BY", value: c.created_by_name ?? "—" },
-                  { label: "CHECKS", value: failed.length ? `${failed.length} FAILED` : "ALL PASS" },
+                  { label: "By", value: c.created_by_name ?? "—" },
+                  { label: "Checks", value: failed.length ? `${failed.length} failed` : "All pass" },
                 ]}
                 onClick={() => openCapture(c)}
                 testId={`inbox-${c.id}`}
@@ -80,16 +85,16 @@ export default function Inbox() {
         </div>
       )}
 
-      <Sheet title={open ? `REVIEW — ${open.capture_type.replace(/_/g, " ").toUpperCase()}` : "REVIEW"} open={open !== null} onClose={() => setOpen(null)} testId="review-sheet">
+      <Sheet title={open ? `Review — ${open.capture_type.replace(/_/g, " ")}` : "Review"} open={open !== null} onClose={() => setOpen(null)} testId="review-sheet">
         {open && (
           <div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-              <Stamp label={`CONFIDENCE ${Number(open.confidence).toFixed(2)}`} tone={Number(open.confidence) >= 0.8 ? "ok" : "warn"} />
+              <Stamp label={`Confidence ${Number(open.confidence).toFixed(2)}`} tone={Number(open.confidence) >= 0.8 ? "ok" : "warn"} />
               {(open.checks ?? []).map((k) => (
-                <Stamp key={k.name} label={`${k.name}: ${k.ok ? "OK" : "FAIL"}`} tone={k.ok ? "ok" : "bad"} />
+                <Stamp key={k.name} label={`${k.name}: ${k.ok ? "ok" : "fail"}`} tone={k.ok ? "ok" : "bad"} />
               ))}
             </div>
-            <label className="bf-label" style={{ display: "block", marginBottom: 4 }}>EXTRACTED FIELDS (EDITABLE)</label>
+            <label className="bf-label" style={{ display: "block", marginBottom: 4 }}>Extracted fields (editable)</label>
             <textarea
               data-testid="review-fields"
               value={draft}
@@ -100,10 +105,10 @@ export default function Inbox() {
             {act.error && <ErrorView message={act.error} />}
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <Button kind="mark" disabled={act.busy} onClick={() => verify(draft !== JSON.stringify(open.extracted, null, 2))} testId="review-verify">
-                VERIFY & ALLOCATE
+                Verify & allocate
               </Button>
               <Button kind="danger" disabled={act.busy} onClick={reject} testId="review-reject">
-                REJECT
+                Reject
               </Button>
             </div>
           </div>
