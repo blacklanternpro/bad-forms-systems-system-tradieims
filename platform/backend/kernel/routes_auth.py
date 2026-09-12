@@ -28,6 +28,8 @@ def _session(user, org) -> dict:
             "id": str(org["id"]), "slug": org["slug"], "name": org["name"],
             "theme": org["theme"], "terminology": org.get("terminology") or {},
             "modules": org.get("modules") or {}, "is_demo": org["is_demo"],
+            "brand": org.get("brand") or {},
+            "pilot": bool((org.get("settings") or {}).get("pilot")),
         },
     }
 
@@ -60,4 +62,7 @@ async def pin_login(body: PinIn):
 async def me(u=Depends(auth.anyone)):
     org = await get_org(u["org_id"])
     row = await db.fetchrow("SELECT id, name, role FROM users WHERE id=$1", u["user_id"])
-    return {"user": svc.row_dict(row), "org": {k: org[k] for k in ("id", "slug", "name", "theme", "terminology", "modules", "is_demo")}}
+    out = {k: org[k] for k in ("id", "slug", "name", "theme", "terminology", "modules", "is_demo")}
+    out["brand"] = org.get("brand") or {}
+    out["pilot"] = bool((org.get("settings") or {}).get("pilot"))
+    return {"user": svc.row_dict(row), "org": out}

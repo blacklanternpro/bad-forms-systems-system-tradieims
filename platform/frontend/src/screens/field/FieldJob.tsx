@@ -6,6 +6,7 @@ import Sheet from "../../components/Sheet";
 import Stamp from "../../components/Stamp";
 import { EmptyView, ErrorView, LoadingView } from "../../components/StatusViews";
 import { useAction, useLoad } from "../../hooks";
+import { isOffline, queueCapture } from "../../lib/outbox";
 import { DocketSheet, PrestartSheet } from "../civil/FieldCab";
 import { RaiseVariation } from "../trades/Variations";
 
@@ -58,14 +59,20 @@ export default function FieldJob() {
       const form = new FormData();
       form.set("capture_type", capType);
       form.set("job_id", id ?? "");
-      const f = fileRef.current?.files?.[0];
+      const f = fileRef.current?.files?.[0] ?? null;
       if (f) form.set("file", f);
-      const res = await api<{ routing: string; confidence: number }>("/captures", { form });
-      setCapResult(
-        res.routing === "fast_track"
-          ? `READ CLEAN (${Number(res.confidence).toFixed(2)}) — off to the office`
-          : `NOT SURE (${Number(res.confidence).toFixed(2)}) — sent to the office to check`,
-      );
+      try {
+        const res = await api<{ routing: string; confidence: number }>("/captures", { form });
+        setCapResult(
+          res.routing === "fast_track"
+            ? `READ CLEAN (${Number(res.confidence).toFixed(2)}) — off to the office`
+            : `NOT SURE (${Number(res.confidence).toFixed(2)}) — sent to the office to check`,
+        );
+      } catch (err) {
+        if (!isOffline(err)) throw err;
+        await queueCapture(capType, id ?? "", f);
+        setCapResult("NO SIGNAL — saved to the outbox, it sends itself when you're back in range");
+      }
       if (fileRef.current) fileRef.current.value = "";
     });
 
@@ -166,7 +173,11 @@ export default function FieldJob() {
       <Sheet title="CAPTURE" open={capOpen} onClose={() => setCapOpen(false)} testId="capture-sheet">
         {capResult ? (
           <div style={{ textAlign: "center", padding: "12px 0" }}>
-            <Stamp label={capResult.startsWith("READ CLEAN") ? "CAPTURED" : "SENT FOR REVIEW"} tone={capResult.startsWith("READ CLEAN") ? "ok" : "warn"} testId="capture-result" />
+            <Stamp
+              label={capResult.startsWith("READ CLEAN") ? "CAPTURED" : capResult.startsWith("NO SIGNAL") ? "IN THE OUTBOX" : "SENT FOR REVIEW"}
+              tone={capResult.startsWith("READ CLEAN") ? "ok" : "warn"}
+              testId="capture-result"
+            />
             <p className="bf-mono" style={{ fontSize: 13, marginTop: 10 }}>{capResult}</p>
             <div style={{ marginTop: 14 }}>
               <Button kind="mark" full onClick={() => setCapOpen(false)}>DONE</Button>

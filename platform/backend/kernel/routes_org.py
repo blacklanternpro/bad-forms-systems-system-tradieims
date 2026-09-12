@@ -32,6 +32,7 @@ class OrgPatch(BaseModel):
     theme: str | None = None
     terminology: dict | None = None
     settings: dict | None = None
+    brand: dict | None = None
 
 
 @r.patch("/org")
@@ -43,6 +44,9 @@ async def org_patch(body: OrgPatch, u=Depends(auth.owner)):
         await db.execute("UPDATE organisations SET theme=$2 WHERE id=$1", u["org_id"], body.theme)
     if body.terminology is not None:
         await db.execute("UPDATE organisations SET terminology=$2 WHERE id=$1", u["org_id"], json.dumps(body.terminology))
+    if body.brand is not None:
+        merged_brand = {**(org.get("brand") or {}), **body.brand}
+        await db.execute("UPDATE organisations SET brand=$2 WHERE id=$1", u["org_id"], json.dumps(merged_brand))
     if body.settings is not None:
         merged = {**(org.get("settings") or {}), **body.settings}
         await db.execute("UPDATE organisations SET settings=$2 WHERE id=$1", u["org_id"], json.dumps(merged))

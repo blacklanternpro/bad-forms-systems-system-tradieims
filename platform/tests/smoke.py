@@ -428,6 +428,64 @@ def fleet_checks(c: httpx.Client) -> None:
     check("SMS evidence pack PDF", pack.status_code == 200 and pack.content[:4] == b"%PDF")
 
 
+def foundry_checks(c: httpx.Client) -> None:
+    print("— platform console + the Foundry —")
+    staff = {"Authorization": "Bearer dev-staff-key"}
+    check("console locked without staff key", c.get("/api/platform/instances").status_code == 401)
+    menu = c.get("/api/platform/menu", headers=staff).json()
+    check("foundry menu serves the catalogue", set(menu["catalogue"]) == {"kernel", "trades", "civil", "fab", "fleet"})
+
+    built = c.post("/api/platform/foundry", headers=staff, json={
+        "trading_name": "Coastal Sparks Electrical", "abn": "12 345 678 901", "brand_colour": "#0a5c46",
+        "sectors": ["trades"], "terminology": {"job": "callout"}, "yards": ["Busselton yard"],
+        "owner_name": "Casey Owner", "owner_email": "casey@coastalsparks.local",
+    }).json()
+    check("foundry manifest imprints prefixes", built["manifest"]["code_prefixes"]["job"] == "CS")
+    creds = built["credentials"]
+    login = c.post("/api/auth/login", json={"email": creds["owner_email"], "password": creds["owner_password"]})
+    check("generated owner login works", login.status_code == 200)
+    s = login.json()
+    check("terminology + brand from commit zero", s["org"]["terminology"]["job"] == "callout" and s["org"]["brand"]["tokens"]["--mark"] == "#0a5c46")
+    h = {"Authorization": f"Bearer {s['token']}"}
+    check("walkthrough job bears their prefix", c.get("/api/jobs", headers=h).json()[0]["code"] == "CS-0001")
+    check("ticked pack live", c.get("/api/trades/certs", headers=h).status_code == 200)
+    check("unticked pack dark", c.get("/api/civil/plant", headers=h).status_code == 501)
+    check("generated crew PIN works", c.post("/api/auth/pin", json={"org_slug": built["manifest"]["slug"], "pin": creds["crew_pin"]}).status_code == 200)
+    check("duplicate slug refused", c.post("/api/platform/foundry", headers=staff, json={
+        "trading_name": "Coastal Sparks Electrical", "owner_name": "X", "owner_email": "x@x.local"}).status_code == 409)
+
+    pilot = c.post("/api/platform/foundry", headers=staff, json={
+        "trading_name": "Pilot Paving", "sectors": ["civil"], "pilot": True,
+        "owner_name": "P. Ilot", "owner_email": "pilot@paving.local"}).json()
+    check("pilot ships kernel only", pilot["manifest"]["modules"] == {"kernel": "live"})
+
+    rows = c.get("/api/platform/instances", headers=staff).json()
+    demo = next(x for x in rows if x["slug"] == "demo")
+    check("instance health board", demo["jobs"] >= 3 and "review_queue" in demo)
+
+    imp = c.post("/api/platform/instances/demo/impersonate", headers=staff)
+    check("support impersonation issues session", imp.status_code == 200 and imp.json()["org"]["slug"] == "demo")
+    hi = {"Authorization": f"Bearer {imp.json()['token']}"}
+    check("impersonation audited on client log", any(a["action"] == "platform.impersonated" for a in c.get("/api/org/audit", headers=hi).json()))
+
+    ai = c.request("PATCH", "/api/platform/instances/coastalsparkselectrical/ai", headers=staff,
+                   json={"chain": ["primary-a", "fallback-b"], "budget_cents": 500000})
+    check("per-client AI config", ai.status_code == 200 and ai.json()["chain"] == ["primary-a", "fallback-b"])
+
+    clients_csv = "name,contact_name,email,phone\nHarbour Strata,Jo Kim,jo@harbour.local,0400111222\n"
+    imp_c = c.post("/api/platform/instances/coastalsparkselectrical/import/clients", headers=staff,
+                   files={"file": ("clients.csv", clients_csv.encode(), "text/csv")})
+    check("clients importer", imp_c.json()["imported"] == 1)
+    jobs_csv = "code,title,status,client,quoted_dollars\nCS-9001,Old switchboard job,done,Harbour Strata,4200\n"
+    imp_j = c.post("/api/platform/instances/coastalsparkselectrical/import/jobs", headers=staff,
+                   files={"file": ("jobs.csv", jobs_csv.encode(), "text/csv")})
+    check("jobs importer", imp_j.json()["imported"] == 1)
+
+    check("brand theme editor roundtrip", c.request("PATCH", "/api/org", headers=h,
+                                                    json={"brand": {"tokens": {"--accent": "#654321"}}}).status_code == 200
+          and c.get("/api/me", headers=h).json()["org"]["brand"]["tokens"]["--accent"] == "#654321")
+
+
 def run_checks() -> None:
     c = httpx.Client(base_url=BASE, timeout=10)
     kernel_checks(c)
@@ -435,6 +493,7 @@ def run_checks() -> None:
     civil_checks(c)
     fab_checks(c)
     fleet_checks(c)
+    foundry_checks(c)
     c.close()
 
 

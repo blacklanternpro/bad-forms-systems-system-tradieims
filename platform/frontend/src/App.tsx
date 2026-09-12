@@ -4,6 +4,7 @@ import { getSession } from "./api";
 import { applyTheme, currentTheme } from "./components/Chrome";
 import Gallery from "./gallery/Gallery";
 import Admin from "./screens/Admin";
+import Console from "./screens/Console";
 import DayBoard from "./screens/DayBoard";
 import Desk from "./screens/Desk";
 import FieldJob from "./screens/field/FieldJob";
@@ -64,6 +65,7 @@ export default function App() {
       <Route path="/" element={<Navigate to={home()} replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/gallery" element={<Gallery />} />
+      <Route path="/console" element={<Console />} />
 
       <Route path="/desk" element={cc(<Desk />)} />
       <Route path="/dayboard" element={cc(<DayBoard />)} />

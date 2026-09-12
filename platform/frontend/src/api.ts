@@ -2,6 +2,11 @@
     the session and returns the user to the login sheet. */
 
 export interface SessionUser { id: string; name: string; role: "owner" | "office" | "crew" }
+export interface OrgBrand {
+  letterhead_line?: string;
+  colour?: string | null;
+  tokens?: Record<string, string>;
+}
 export interface SessionOrg {
   id: string;
   slug: string;
@@ -10,6 +15,8 @@ export interface SessionOrg {
   terminology: Record<string, string>;
   modules: Record<string, string>;
   is_demo: boolean;
+  brand?: OrgBrand;
+  pilot?: boolean;
 }
 export interface Session { token: string; user: SessionUser; org: SessionOrg }
 
@@ -394,4 +401,70 @@ export interface EvidenceVault {
   outcomes: Record<string, string>;
   counts: Record<string, number>;
   items: EvidenceItem[];
+}
+
+/* --------------------- Platform console (god-mode) --------------------- */
+
+export interface InstanceRow {
+  id: string;
+  slug: string;
+  name: string;
+  theme: string;
+  modules: Record<string, string>;
+  is_demo: boolean;
+  created_at: string;
+  users: number;
+  jobs: number;
+  review_queue: number;
+  verified: number;
+  corrected: number;
+  last_activity: string | null;
+  pilot: boolean;
+  ledger: string | null;
+  ledger_connected: boolean;
+  ai: { provider?: string; chain?: string[]; thresholds?: Record<string, number>; budget_cents?: number };
+  extraction_accuracy: number | null;
+}
+
+export interface FoundryMenu {
+  catalogue: Record<string, { label: string; blurb: string; bundle: string[] }>;
+  themes: string[];
+}
+
+export interface FoundryResult {
+  org_id: string;
+  manifest: Record<string, unknown>;
+  credentials: { owner_email: string; owner_password: string; crew_pin: string };
+}
+
+/** Console calls carry the BAD FORM staff key, never a client session token. */
+export async function platformApi<T>(
+  staffKey: string,
+  path: string,
+  opts: { method?: string; body?: unknown; form?: FormData } = {},
+): Promise<T> {
+  const headers: Record<string, string> = { Authorization: `Bearer ${staffKey}` };
+  let payload: BodyInit | undefined;
+  if (opts.form) {
+    payload = opts.form;
+  } else if (opts.body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    payload = JSON.stringify(opts.body);
+  }
+  const res = await fetch(`/api/platform${path}`, {
+    method: opts.method ?? (payload !== undefined ? "POST" : "GET"),
+    headers,
+    body: payload,
+  });
+  if (!res.ok) {
+    let detail = `Request failed (${res.status})`;
+    try {
+      const data = (await res.json()) as { detail?: string };
+      if (data.detail) detail = data.detail;
+    } catch {
+      // non-JSON error body: keep the status message
+    }
+    throw new ApiError(res.status, detail);
+  }
+  return (await res.json()) as T;
 }

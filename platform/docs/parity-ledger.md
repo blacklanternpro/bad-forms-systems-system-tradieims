@@ -29,10 +29,14 @@ Status values: `built` | `partial` | `planned` | `deferred`.
 | Live reporting: WIP, profitability, post-job margin | built | kernel/routes_reports |
 | Global search | built | kernel/routes_reports |
 | Per-job timeline, photos, documents/drawings, comms log | built | kernel/routes_jobs |
-| Offline field capture (sync outbox) | partial | frontend/lib/outbox (queue + replay; conflict policy last-write-wins) |
-| Xero/MYOB draft sync | partial | ledger.py (mock adapter; real OAuth is a later work order) |
-| Yard admin console (ledger connect, users/PINs, modules, thresholds) | built | kernel/routes_org + cc/Admin |
-| AI gateway: provider adapters, pinned model/prompt, fixture mode | built | aigate.py |
+| Offline field capture (sync outbox) | partial | frontend/src/lib/outbox.ts — captures queue offline and replay on reconnect; full offline job pack (read cache) is a later work order |
+| Xero/MYOB draft sync | partial | ledger.py (mock adapter; real OAuth is a later work order behind the same interface) |
+| Yard admin console (ledger connect, users/PINs, modules, brand editor) | built | kernel/routes_org + screens/Admin |
+| Platform console (god-mode): provisioning, health, AI per client, audited impersonation | built | kernel/routes_platform + screens/Console |
+| The Foundry: intake → ticklist → imprint-from-commit-zero instance | built | kernel/routes_platform (foundry) + screens/Console |
+| Onboarding importers (contacts CSV, job history CSV, price files) | built | routes_platform importers + routes_quotes price import |
+| Pilot mode (capture pipeline only, $2.5k tier) | built | foundry pilot flag; packs stay dark |
+| AI gateway: provider chain, thresholds, budget config, fixture mode | built | aigate.py + routes_platform ai config |
 | Golden-set extraction evals in CI | built | tests/test_extraction.py |
 
 ## Available (modules)
@@ -40,7 +44,8 @@ Status values: `built` | `partial` | `planned` | `deferred`.
 | Capability | Status | Where |
 | --- | --- | --- |
 | Inventory / van stock | deferred | pitch: pilot scope decision per yard; schema reserved |
-| Customer asset register + maintenance contracts | built | fleet pack (service intervals), generalisable |
+| Customer asset register + maintenance contracts | built | fleet pack: register, service_plans, workshop queue |
+| CoR/SMS evidence vault (HVNL 2026 five outcomes) | built | fleet pack: composed vault + auditor pack PDF |
 | Retention / holdbacks | partial | invoice claims support retention percent |
 | Subcontractor job cards | deferred | pitch: subbies captured as crew users in v1 |
 | Customer portal (job status) | partial | public quote/sign token pages built; status page planned |

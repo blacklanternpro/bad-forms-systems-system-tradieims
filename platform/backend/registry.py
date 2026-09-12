@@ -21,6 +21,7 @@ from kernel import (
     routes_jobs,
     routes_notify,
     routes_org,
+    routes_platform,
     routes_procure,
     routes_public,
     routes_quotes,
@@ -54,5 +55,7 @@ def mount(app: FastAPI) -> None:
     # segments, so everything mounts under the single /api prefix.
     for router in KERNEL + [routes_field.r, routes_public.r]:
         app.include_router(router, prefix="/api")
+    # The god-mode console: staff-key auth, never mixed into client-facing paths.
+    app.include_router(routes_platform.r, prefix="/api/platform")
     for pack_name, router in PACKS:
         app.include_router(router, prefix=f"/api/{pack_name}")

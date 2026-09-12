@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { api, getSession, moduleLive, setSession, type NotificationRow } from "../api";
-import { GloveToggle, ThemeSwitch } from "../components/Chrome";
+import { GloveToggle, ThemeSwitch, applyBrand } from "../components/Chrome";
 
 /** Nav is composed per instance: pack entries only appear when the module is live. */
 function navItems(): { to: string; label: string }[] {
@@ -31,6 +31,7 @@ export default function CommandShell({ children }: CommandShellProps) {
 
   useEffect(() => {
     let live = true;
+    applyBrand(getSession()?.org.brand?.tokens);
     api<NotificationRow[]>("/notifications")
       .then((rows) => live && setUnread(rows.length))
       .catch(() => undefined);
@@ -45,7 +46,7 @@ export default function CommandShell({ children }: CommandShellProps) {
     <div className="bf-page">
       <header style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "8px 20px", borderBottom: "2px solid var(--ink)", paddingBottom: 12 }}>
         <h1 className="bf-h1" style={{ fontSize: 20 }}>{s.org.name}</h1>
-        <span className="bf-label">{s.org.is_demo ? "DEMO YARD" : "COMMAND CENTER"}</span>
+        <span className="bf-label">{s.org.pilot ? "PILOT — CAPTURE PIPELINE" : s.org.is_demo ? "DEMO YARD" : "COMMAND CENTER"}</span>
         <form
           onSubmit={(e) => {
             e.preventDefault();

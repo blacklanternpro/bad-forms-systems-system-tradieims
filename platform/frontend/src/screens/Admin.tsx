@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { api, getSession, type OrgAdmin, type OrgUser } from "../api";
+import { api, getSession, setSession, type OrgAdmin, type OrgBrand, type OrgUser } from "../api";
 import Button from "../components/Button";
-import { THEMES, applyTheme, type ThemeName } from "../components/Chrome";
+import { THEMES, applyBrand, applyTheme, type ThemeName } from "../components/Chrome";
 import Field from "../components/Field";
 import LedgerTable from "../components/LedgerTable";
 import Sheet from "../components/Sheet";
@@ -24,6 +24,8 @@ export default function Admin() {
   const [uEmail, setUEmail] = useState("");
   const [uRole, setURole] = useState("crew");
   const [uSecret, setUSecret] = useState("");
+  const [brandColour, setBrandColour] = useState(s?.org.brand?.colour ?? "#1f4d3a");
+  const [letterhead, setLetterhead] = useState(s?.org.brand?.letterhead_line ?? "");
 
   if (!isOwner) {
     return <EmptyView title="OWNER ONLY" hint="The admin desk is limited to the yard owner's login." testId="admin-locked" />;
@@ -40,6 +42,20 @@ export default function Admin() {
     void act.run(async () => {
       await api("/org", { method: "PATCH", body: { theme: t } });
       applyTheme(t);
+      org.reload();
+    });
+
+  const saveBrand = () =>
+    void act.run(async () => {
+      const brand: OrgBrand = {
+        colour: brandColour,
+        letterhead_line: letterhead.trim() || undefined,
+        tokens: { "--mark": brandColour },
+      };
+      await api("/org", { method: "PATCH", body: { brand } });
+      applyBrand(brand.tokens);
+      const sess = getSession();
+      if (sess) setSession({ ...sess, org: { ...sess.org, brand } });
       org.reload();
     });
 
@@ -86,6 +102,24 @@ export default function Admin() {
             </Button>
           ))}
         </div>
+
+        <h3 className="bf-label" style={{ marginTop: 22 }}>BRAND</h3>
+        <label className="bf-label" style={{ display: "flex", alignItems: "center", gap: 10, margin: "8px 0 10px" }}>
+          MARK COLOUR
+          <input
+            type="color"
+            aria-label="Brand mark colour"
+            data-testid="brand-colour"
+            value={brandColour}
+            onChange={(e) => setBrandColour(e.target.value)}
+            style={{ width: 54, height: 34, padding: 2, cursor: "pointer" }}
+          />
+          <span className="bf-mono" style={{ fontSize: 12 }}>{brandColour}</span>
+        </label>
+        <Field label="LETTERHEAD LINE (PDFS + PUBLIC PAGES)" value={letterhead} onChange={setLetterhead} testId="brand-letterhead" />
+        <Button kind="quiet" disabled={act.busy} onClick={saveBrand} testId="brand-save">
+          {act.busy ? "SAVING…" : "SAVE BRAND"}
+        </Button>
 
         <h3 className="bf-label" style={{ marginTop: 22 }}>LEDGER</h3>
         <p style={{ margin: "6px 0 10px" }}>

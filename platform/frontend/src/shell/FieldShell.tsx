@@ -1,20 +1,35 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { getSession, setSession } from "../api";
-import { GloveToggle } from "../components/Chrome";
+import { GloveToggle, applyBrand } from "../components/Chrome";
+import { flush, pending } from "../lib/outbox";
 
 export interface FieldShellProps { children: ReactNode }
 
-/** Field app chrome: one-thumb layout, bottom bar, glove mode always at hand. */
+/** Field app chrome: one-thumb layout, bottom bar, glove mode always at hand.
+    The capture outbox replays whenever the shell mounts or the signal returns. */
 export default function FieldShell({ children }: FieldShellProps) {
   const nav = useNavigate();
   const s = getSession();
+  const [queued, setQueued] = useState(pending().length);
+  useEffect(() => {
+    applyBrand(getSession()?.org.brand?.tokens);
+    const tryFlush = () => void flush().then(() => setQueued(pending().length));
+    tryFlush();
+    window.addEventListener("online", tryFlush);
+    return () => window.removeEventListener("online", tryFlush);
+  }, []);
   if (!s) return null;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <header style={{ padding: "14px 16px 10px", borderBottom: "2px solid var(--ink)", display: "flex", alignItems: "baseline", gap: 12 }}>
         <span className="bf-label" style={{ fontSize: 12 }}>{s.org.name}</span>
+        {queued > 0 && (
+          <span className="bf-label" data-testid="outbox-count" style={{ color: "var(--stamp-warn)" }}>
+            OUTBOX {queued}
+          </span>
+        )}
         <span className="bf-mono" style={{ fontSize: 12, color: "var(--ink-mute)", marginLeft: "auto" }}>{s.user.name}</span>
       </header>
       <main style={{ flex: 1, padding: "16px 16px 90px", maxWidth: 560, width: "100%", margin: "0 auto" }}>{children}</main>

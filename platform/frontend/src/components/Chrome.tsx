@@ -13,6 +13,26 @@ export function currentTheme(): ThemeName {
   return (THEMES as readonly string[]).includes(t ?? "") ? (t as ThemeName) : "daybook";
 }
 
+const BRAND_KEY = "bf_brand_tokens";
+
+/** Client-brand token overrides on top of the active theme (the starter reskin
+    the Foundry generates). Clears whatever the previous session applied. */
+export function applyBrand(tokens: Record<string, string> | undefined): void {
+  const el = document.documentElement;
+  let prev: Record<string, string> = {};
+  try {
+    prev = JSON.parse(localStorage.getItem(BRAND_KEY) ?? "{}") as Record<string, string>;
+  } catch {
+    prev = {};
+  }
+  for (const k of Object.keys(prev)) el.style.removeProperty(k);
+  const next = tokens ?? {};
+  for (const [k, v] of Object.entries(next)) {
+    if (k.startsWith("--")) el.style.setProperty(k, v);
+  }
+  localStorage.setItem(BRAND_KEY, JSON.stringify(next));
+}
+
 export interface ThemeSwitchProps { testId?: string }
 export function ThemeSwitch({ testId }: ThemeSwitchProps) {
   const [theme, setTheme] = useState<ThemeName>(currentTheme());
