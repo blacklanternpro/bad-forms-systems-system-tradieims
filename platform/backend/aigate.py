@@ -59,6 +59,8 @@ FIXTURES: dict[str, dict] = {
     },
     "prestart": {"result": "pass", "faults": [], "confidence": 0.99},
     "incident": {"summary": "", "confidence": 0.99},
+    # Evidence photo for a stage hold point: nothing to extract, never queued for review.
+    "stage_photo": {"confidence": 0.99},
     "hire_docket": {
         "machine": "EX-04 Cat 330",
         "hours": 6.5,

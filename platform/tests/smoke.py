@@ -1,5 +1,5 @@
 """Live smoke — the phase parity gate. Boots uvicorn on :8010 against embedded
-Postgres, seeds the generic demo yard plus both synthetic trades yards, and
+Postgres, seeds the generic demo yard plus every sector demo yard, and
 walks the entire surface as a real HTTP client (55+ checks).
 
 Run: python3 tests/smoke.py
@@ -61,6 +61,7 @@ def reset_and_seed() -> None:
     import db
     import seed
     from packs.civil import seed_civil
+    from packs.fab import seed_fab
     from packs.trades import seed_trades
 
     async def run():
@@ -70,6 +71,7 @@ def reset_and_seed() -> None:
         await seed.seed_demo_yard()
         await seed_trades.seed_trades_yards()
         await seed_civil.seed_kemerton()
+        await seed_fab.seed_steelhaus()
         await db.close()
 
     asyncio.run(run())
@@ -318,11 +320,69 @@ def civil_checks(c: httpx.Client) -> None:
     check("SoR library search", c.get("/api/civil/sor?q=roadbase", headers=h).json()[0]["unit"] == "t")
 
 
+def fab_checks(c: httpx.Client) -> None:
+    print("— fab pack: ITP, traceability, NDI, offcuts, MDR, kiosk flow —")
+    hd = hdr(c, "owner@demo.local", "demo-owner")
+    check("fab gated off generic yard", c.get("/api/fab/materials", headers=hd).status_code == 501)
+
+    h = hdr(c, "owner@steelhaus.local", "steelhaus-owner")
+    r = c.post("/api/auth/pin", json={"org_slug": "steelhaus", "pin": "5555"})
+    check("welder PIN login", r.status_code == 200)
+    hc = {"Authorization": f"Bearer {r.json()['token']}"}
+
+    tpls = c.get("/api/fab/itp-templates", headers=h).json()
+    cc2 = next(t for t in tpls if t["name"] == "Structural steel CC2")
+    check("ITP template seeded (6 stages)", len(cc2["stages"]) == 6)
+    jobs = c.get("/api/jobs", headers=h).json()
+    wo = next(j for j in jobs if j["code"] == "WO-0001")
+    check("re-apply ITP onto staged job refused", c.post("/api/fab/apply-itp", headers=h,
+                                                         json={"job_id": wo["id"], "template_id": cc2["id"]}).status_code == 409)
+    fresh = c.post("/api/jobs", headers=h, json={"title": "Pipe rack modules"}).json()
+    ap = c.post("/api/fab/apply-itp", headers=h, json={"job_id": fresh["id"], "template_id": cc2["id"]})
+    check("ITP stamps stages onto fresh WO", ap.status_code == 200 and ap.json()["stages"] == 6)
+
+    lots = c.get("/api/fab/materials", headers=h).json()
+    check("seeded heat on register", any(m["heat_no"] == "HT-77120" for m in lots))
+    hcap = c.post("/api/captures", headers=hc, data={"capture_type": "heat_cert", "job_id": wo["id"]},
+                  files={"file": ("cert.jpg", b"\xff\xd8x", "image/jpeg")}).json()
+    check("heat cert fast-tracks over 0.85 threshold", hcap["routing"] == "fast_track")
+    alloc = c.post(f"/api/captures/{hcap['id']}/verify", headers=h, json={})
+    check("verified cert allocates material lot", alloc.json()["allocation"]["kind"] == "material_lot")
+    check("extracted heat lands on register", any(m["heat_no"] == "HT-98442" for m in c.get("/api/fab/materials", headers=h).json()))
+
+    check("bad NDI method refused", c.post("/api/fab/ndi", headers=h, json={"job_id": wo["id"], "method": "xray-vibes", "result": "pass"}).status_code == 400)
+    ndi = c.post("/api/fab/ndi", headers=h, json={"job_id": wo["id"], "method": "UT", "result": "pass", "report_ref": "NDI-2290", "inspector": "J. Okon"})
+    check("NDI recorded", ndi.status_code == 200)
+
+    offs = c.get("/api/fab/offcuts", headers=h).json()
+    drop = next(o for o in offs if o["heat_no"] == "HT-77120")
+    check("offcut allocate", c.post(f"/api/fab/offcuts/{drop['id']}/allocate", headers=h, json={"job_id": fresh["id"]}).status_code == 200)
+    check("allocation carries heat onto receiving WO",
+          any(m["heat_no"] == "HT-77120" for m in c.get(f"/api/fab/materials?job_id={fresh['id']}", headers=h).json()))
+    check("allocated offcut off the available rack", not any(o["id"] == drop["id"] for o in c.get("/api/fab/offcuts", headers=h).json()))
+
+    today = c.get("/api/field/today", headers=hc).json()["jobs"]
+    check("welder kiosk board shows WO-0001", any(j["code"] == "WO-0001" for j in today))
+    # Kiosk hold-point flow runs on the fresh WO: it has stamped stages and no captures yet.
+    pack = c.get(f"/api/field/jobs/{fresh['id']}", headers=hc).json()
+    hold = next(s for s in pack["stages"] if not s["completed_at"])
+    check("photo hold point blocks bare sign-off", hold["requires_photo"] and
+          c.post(f"/api/field/jobs/{fresh['id']}/stage-done", headers=hc, json={"stage_id": hold["id"]}).status_code == 400)
+    sp = c.post("/api/captures", headers=hc, data={"capture_type": "stage_photo", "job_id": fresh["id"]},
+                files={"file": ("weld.jpg", b"\xff\xd8x", "image/jpeg")}).json()
+    check("stage photo fast-tracks quietly", sp["routing"] == "fast_track")
+    check("photo in, hold point signs off", c.post(f"/api/field/jobs/{fresh['id']}/stage-done", headers=hc, json={"stage_id": hold["id"]}).status_code == 200)
+
+    mdr = c.get(f"/api/fab/jobs/{wo['id']}/mdr.pdf", headers=h)
+    check("MDR pack PDF", mdr.status_code == 200 and mdr.content[:4] == b"%PDF")
+
+
 def run_checks() -> None:
     c = httpx.Client(base_url=BASE, timeout=10)
     kernel_checks(c)
     trades_checks(c)
     civil_checks(c)
+    fab_checks(c)
     c.close()
 
 

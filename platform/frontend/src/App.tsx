@@ -11,12 +11,14 @@ import FieldToday from "./screens/field/FieldToday";
 import Inbox from "./screens/Inbox";
 import JobDetail from "./screens/JobDetail";
 import Jobs from "./screens/Jobs";
+import Kiosk from "./screens/Kiosk";
 import Login from "./screens/Login";
 import Notifications from "./screens/Notifications";
 import Quotes from "./screens/Quotes";
 import Search from "./screens/Search";
 import Dockets from "./screens/civil/Dockets";
 import Plant from "./screens/civil/Plant";
+import Shop from "./screens/fab/Shop";
 import Certs from "./screens/trades/Certs";
 import CommandShell from "./shell/CommandShell";
 import FieldShell from "./shell/FieldShell";
@@ -74,9 +76,11 @@ export default function App() {
       <Route path="/certs" element={cc(<Certs />)} />
       <Route path="/plant" element={cc(<Plant />)} />
       <Route path="/dockets" element={cc(<Dockets />)} />
+      <Route path="/shop" element={cc(<Shop />)} />
 
       <Route path="/field" element={field(<FieldToday />)} />
       <Route path="/field/jobs/:id" element={field(<FieldJob />)} />
+      <Route path="/kiosk" element={<Kiosk />} />
 
       <Route path="*" element={<Navigate to={home()} replace />} />
     </Routes>

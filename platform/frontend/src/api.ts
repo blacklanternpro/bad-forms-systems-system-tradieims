@@ -285,3 +285,36 @@ export interface QuarryTicketRow {
   job_code: string | null;
   created_at: string;
 }
+
+/* -------------------------------- Fab pack -------------------------------- */
+
+export interface ItpTemplate { id: string; name: string; stages: { name: string; requires_photo: boolean }[] }
+
+export interface MaterialLot {
+  id: string;
+  heat_no: string;
+  material: string | null;
+  mill: string | null;
+  cert_ref: string | null;
+  job_code: string | null;
+  created_at: string;
+}
+
+export interface NdiRecord {
+  id: string;
+  method: string;
+  result: "pass" | "fail";
+  report_ref: string | null;
+  inspector: string | null;
+  job_code: string;
+  created_at: string;
+}
+
+export interface OffcutRow {
+  id: string;
+  description: string;
+  material: string | null;
+  heat_no: string | null;
+  status: "available" | "allocated" | "scrapped";
+  created_at: string;
+}

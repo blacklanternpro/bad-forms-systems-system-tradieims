@@ -4,6 +4,7 @@ import Button from "../components/Button";
 import Stamp, { type StampTone } from "../components/Stamp";
 import { EmptyView, ErrorView, LoadingView } from "../components/StatusViews";
 import { useAction, useLoad } from "../hooks";
+import { ApplyItp } from "./fab/Shop";
 import { JobVariations } from "./trades/Variations";
 
 const NEXT_STATUS: Record<string, { to: string; verb: string } | undefined> = {
@@ -61,6 +62,18 @@ export default function JobDetail() {
               INVOICE → LEDGER
             </Button>
           )}
+          {moduleLive("fab") && (
+            <a
+              className="bf-label"
+              data-testid="mdr-link"
+              href={`/api/fab/jobs/${id}/mdr.pdf`}
+              target="_blank"
+              rel="noreferrer"
+              style={{ alignSelf: "center" }}
+            >
+              MDR PACK ↗
+            </a>
+          )}
         </span>
       </header>
       <p className="bf-mono" style={{ fontSize: 13, color: "var(--ink-mute)", margin: "0 0 20px" }}>
@@ -101,7 +114,9 @@ export default function JobDetail() {
 
         <section aria-labelledby="stages-h">
           <h3 id="stages-h" className="bf-label">STAGES</h3>
-          {stages.length === 0 ? (
+          {stages.length === 0 && moduleLive("fab") && id ? (
+            <ApplyItp jobId={id} onApplied={d.reload} />
+          ) : stages.length === 0 ? (
             <EmptyView title="NO STAGES" hint="This job runs without staged sign-off." />
           ) : (
             <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
