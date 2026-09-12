@@ -1,0 +1,83 @@
+/* DAYBOOK token schema. Every theme overrides these variables; components never
+   hard-code visual values. Themes: daybook (base), amber-on-void, paper-docket. */
+:root,
+[data-theme="daybook"] {
+  /* ground + ink */
+  --ground: #f6f3ea;
+  --ground-raise: #fbf9f3;
+  --ground-sink: #efeadd;
+  --ink: #191712;
+  --ink-mute: #6d675a;
+  --ink-faint: #9b9483;
+  /* rules + lines */
+  --rule: #ddd6c6;
+  --rule-strong: #b9b09a;
+  /* brand + accents */
+  --accent: #1f3fb4; /* cobalt: actions, links */
+  --accent-ink: #ffffff;
+  --mark: #e7b60c; /* stamp yellow: primary verbs */
+  --mark-ink: #191712;
+  /* stamps */
+  --stamp-ok: #1d7a3e;
+  --stamp-warn: #b06a00;
+  --stamp-bad: #b3261e;
+  --stamp-info: #1f3fb4;
+  /* type */
+  --font-ui: "Archivo", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* geometry */
+  --radius: 2px;
+  --tap-min: 44px;
+  --gap: 8px;
+  --shadow: 0 1px 0 var(--rule);
+  /* motion */
+  --confirm-ms: 140ms;
+}
+
+[data-theme="amber-on-void"] {
+  --ground: #0a0c0f;
+  --ground-raise: #11141a;
+  --ground-sink: #06080a;
+  --ink: #e7ecf3;
+  --ink-mute: #94a3b8;
+  --ink-faint: #5c6878;
+  --rule: #1c232e;
+  --rule-strong: #262f3d;
+  --accent: #f59e0b;
+  --accent-ink: #0a0c0f;
+  --mark: #f59e0b;
+  --mark-ink: #0a0c0f;
+  --stamp-ok: #22c55e;
+  --stamp-warn: #f59e0b;
+  --stamp-bad: #ef4444;
+  --stamp-info: #60a5fa;
+  --radius: 8px;
+  --shadow: none;
+}
+
+[data-theme="paper-docket"] {
+  --ground: #efe6c8;
+  --ground-raise: #f3e6c4;
+  --ground-sink: #d8c48c;
+  --ink: #1c1814;
+  --ink-mute: #5c5348;
+  --ink-faint: #8a7f6e;
+  --rule: #cbbd97;
+  --rule-strong: #a3946f;
+  --accent: #2242c8;
+  --accent-ink: #ffffff;
+  --mark: #f3d31a;
+  --mark-ink: #1c1814;
+  --stamp-ok: #2e6b30;
+  --stamp-warn: #9a6200;
+  --stamp-bad: #a02c21;
+  --stamp-info: #2242c8;
+  --radius: 2px;
+}
+
+/* Glove mode: bigger targets, boosted contrast. Toggled on <html>. */
+[data-glove="on"] {
+  --tap-min: 60px;
+  --ink-mute: var(--ink);
+  --rule: var(--rule-strong);
+}

@@ -1,0 +1,497 @@
+/** Typed API client + session. All requests go through `api()`; a 401 clears
+    the session and returns the user to the login sheet. */
+
+export interface SessionUser { id: string; name: string; role: "owner" | "office" | "crew" }
+export interface OrgBrand {
+  letterhead_line?: string;
+  colour?: string | null;
+  tokens?: Record<string, string>;
+}
+export interface SessionOrg {
+  id: string;
+  slug: string;
+  name: string;
+  theme: string;
+  terminology: Record<string, string>;
+  modules: Record<string, string>;
+  is_demo: boolean;
+  brand?: OrgBrand;
+  pilot?: boolean;
+}
+export interface Session { token: string; user: SessionUser; org: SessionOrg }
+
+const KEY = "bf_session";
+
+export function getSession(): Session | null {
+  const raw = localStorage.getItem(KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as Session;
+  } catch {
+    return null;
+  }
+}
+
+export function setSession(s: Session | null): void {
+  if (s) localStorage.setItem(KEY, JSON.stringify(s));
+  else localStorage.removeItem(KEY);
+}
+
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
+const BASE = import.meta.env.VITE_API_BASE ?? "";
+
+/** In-memory only — full page reload restores seeded demo data. */
+let virginToken: string | null = null;
+const virginListeners = new Set<() => void>();
+
+export function getVirginToken(): string | null {
+  return virginToken;
+}
+
+export function setVirginToken(token: string | null): void {
+  virginToken = token;
+  virginListeners.forEach((fn) => fn());
+}
+
+export function subscribeVirgin(fn: () => void): () => void {
+  virginListeners.add(fn);
+  return () => {
+    virginListeners.delete(fn);
+  };
+}
+
+export async function api<T>(path: string, opts: { method?: string; body?: unknown; form?: FormData } = {}): Promise<T> {
+  const s = getSession();
+  const headers: Record<string, string> = {};
+  if (s) headers.Authorization = `Bearer ${s.token}`;
+  if (virginToken) headers["X-Demo-Virgin"] = virginToken;
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  const res = await fetch(`${BASE}/api${path}`, {
+    method: opts.method ?? (opts.body !== undefined || opts.form ? "POST" : "GET"),
+    headers,
+    body: opts.form ?? (opts.body !== undefined ? JSON.stringify(opts.body) : undefined),
+  });
+  if (res.status === 401 && s) {
+    setSession(null);
+    setVirginToken(null);
+    window.location.href = "/login";
+  }
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const j = (await res.json()) as { detail?: string };
+      if (j.detail) detail = j.detail;
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new ApiError(res.status, detail);
+  }
+  return (await res.json()) as T;
+}
+
+export async function clearDemo(): Promise<void> {
+  const res = await api<{ virgin_token: string }>("/demo/clear", { method: "POST", body: {} });
+  setVirginToken(res.virgin_token);
+}
+
+export function money(cents: number): string {
+  return `$${(cents / 100).toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+/* ------------------------------- API shapes ------------------------------- */
+
+export interface JobRow {
+  id: string;
+  code: string;
+  title: string;
+  status: "quoted" | "scheduled" | "live" | "done" | "invoiced";
+  client_name: string | null;
+  quoted_cents: number;
+  recall_on: string | null;
+  starts_on: string | null;
+}
+
+export interface QuoteRow {
+  id: string;
+  code: string;
+  title: string;
+  status: "draft" | "sent" | "accepted" | "declined";
+  client_name: string | null;
+  total_ex_cents: number;
+  valid_until: string | null;
+  follow_up: boolean;
+  overdue: boolean;
+}
+
+export interface CaptureCheck { name: string; ok: boolean; detail: string }
+export interface CaptureRow {
+  id: string;
+  capture_type: string;
+  status: string;
+  confidence: number;
+  extracted: Record<string, unknown>;
+  checks: CaptureCheck[];
+  job_code: string | null;
+  created_by_name: string | null;
+  created_at: string;
+}
+
+export interface NotificationRow {
+  id: string;
+  event_type: string;
+  title: string;
+  body: string;
+  link: string | null;
+  created_at: string;
+}
+
+export interface Nudge {
+  date: string;
+  recalls: { id: string; code: string; title: string; recall_on: string }[];
+  quotes: { id: string; code: string; title: string; valid_until: string }[];
+  review_count: number;
+  licences_expiring: { kind: string; expires_on: string; user_name: string }[];
+}
+
+export interface ChaseList {
+  uninvoiced: { id: string; code: string; title: string; quoted_cents: number; completed_at: string | null }[];
+  overdue: { id: string; code: string; job_code: string | null; total_ex_cents: number; due_on: string | null }[];
+  on_table_cents: number;
+}
+
+export interface TimelineEvent { id: string; kind: string; summary: string; created_at: string }
+
+export interface JobCosting {
+  hours: number;
+  labour_cents: number;
+  materials_cents: number;
+  plant_cents: number;
+  cost_cents: number;
+  quoted_cents: number;
+  margin_cents: number;
+}
+
+export interface JobStage { id: string; name: string; sort: number; requires_photo: boolean; completed_at: string | null }
+export interface JobDocument { id: string; kind: string; name: string; created_at: string }
+export interface JobCapture { id: string; capture_type: string; status: string; confidence: number; created_at: string }
+export interface CommRow { channel: string; recipient: string; subject: string | null; status: string; created_at: string }
+
+export interface JobDetail {
+  job: JobRow & { site_name: string | null; address: string | null; gate_code: string | null; po_ref: string | null };
+  stages: JobStage[];
+  documents: JobDocument[];
+  timeline: TimelineEvent[];
+  comms: CommRow[];
+  captures: JobCapture[];
+  costing: JobCosting;
+}
+
+export interface FieldBoard {
+  date: string;
+  jobs: { job_id: string; code: string; title: string; window: string | null; site_name: string | null; address: string | null }[];
+}
+
+export interface FieldJobPack {
+  job: {
+    id: string;
+    code: string;
+    title: string;
+    status: string;
+    site_name: string | null;
+    address: string | null;
+    gate_code: string | null;
+    site_contact: string | null;
+    site_phone: string | null;
+    client_name: string | null;
+  };
+  on_today: string[];
+  drawings: { id: string; kind: string; name: string }[];
+  stages: JobStage[];
+  open_time_entry: { id: string; started_at: string } | null;
+}
+
+export interface SearchHits {
+  jobs: { id: string; code: string; title: string }[];
+  clients: { id: string; name: string }[];
+  quotes: { id: string; code: string; title: string }[];
+  pos: { id: string; code: string; supplier: string }[];
+}
+
+export interface OrgAdmin {
+  id: string;
+  slug: string;
+  name: string;
+  legal_name: string | null;
+  abn: string | null;
+  theme: string;
+  settings: Record<string, unknown> & { ledger?: { provider: string; status?: string } };
+  modules: Record<string, string>;
+}
+
+export interface OrgUser { id: string; name: string; email: string | null; role: string; pin: string | null; active: boolean }
+
+/* ------------------------------ Trades pack ------------------------------ */
+
+export interface VariationRow {
+  id: string;
+  code: string;
+  title: string;
+  detail: string | null;
+  amount_cents: number;
+  status: "proposed" | "approved" | "declined";
+  job_code: string;
+  job_title: string;
+  raised_by_name: string | null;
+  decided_by_name: string | null;
+  created_at: string;
+}
+
+export interface CertRow {
+  id: string;
+  code: string;
+  kind: string;
+  status: "draft" | "issued";
+  job_code: string | null;
+  fields: Record<string, string>;
+  issued_at: string | null;
+  created_at: string;
+}
+
+export function moduleLive(name: string): boolean {
+  const s = getSession();
+  return s?.org.modules[name] === "live";
+}
+
+/* ------------------------------- Civil pack ------------------------------- */
+
+export interface PlantRow {
+  id: string;
+  kind: string;
+  name: string;
+  rego: string | null;
+  meter_hours: string;
+  yard: string | null;
+  meta: { code?: string };
+  prestart_today: "pass" | "fail" | null;
+}
+
+export interface HireRate {
+  id: string;
+  mode: "wet" | "dry";
+  rate_cents_per_hour: number;
+  min_hours: string;
+  standby_cents_per_hour: number;
+  travel_cents: number;
+}
+
+export interface DocketRow {
+  id: string;
+  code: string;
+  work_date: string;
+  mode: "wet" | "dry";
+  hours: string;
+  standby_hours: string;
+  travel: boolean;
+  tally: Record<string, number>;
+  total_cents: number;
+  status: "draft" | "signed" | "approved";
+  signed_by_name: string | null;
+  plant_name: string;
+  job_code: string;
+}
+
+export interface SorItem { id: string; code: string; description: string; unit: string; rate_cents: number }
+
+export interface QuarryTicketRow {
+  id: string;
+  quarry: string | null;
+  ticket_no: string | null;
+  material: string | null;
+  tonnes: string;
+  rate_cents_per_tonne: number;
+  job_code: string | null;
+  created_at: string;
+}
+
+/* -------------------------------- Fab pack -------------------------------- */
+
+export interface ItpTemplate { id: string; name: string; stages: { name: string; requires_photo: boolean }[] }
+
+export interface MaterialLot {
+  id: string;
+  heat_no: string;
+  material: string | null;
+  mill: string | null;
+  cert_ref: string | null;
+  job_code: string | null;
+  created_at: string;
+}
+
+export interface NdiRecord {
+  id: string;
+  method: string;
+  result: "pass" | "fail";
+  report_ref: string | null;
+  inspector: string | null;
+  job_code: string;
+  created_at: string;
+}
+
+export interface OffcutRow {
+  id: string;
+  description: string;
+  material: string | null;
+  heat_no: string | null;
+  status: "available" | "allocated" | "scrapped";
+  created_at: string;
+}
+
+/* ------------------------------- Fleet pack ------------------------------- */
+
+export interface FleetAsset {
+  id: string;
+  kind: string;
+  name: string;
+  rego: string | null;
+  yard: string | null;
+  meter_hours: string;
+  meta: { code?: string };
+  carrier_id: string | null;
+  carrier_name: string | null;
+  prestart_today: "pass" | "fail" | null;
+  hours_to_service: string | null;
+}
+
+export interface DueService {
+  plan_id: string;
+  plan_name: string;
+  interval_hours: string;
+  last_service_hours: string;
+  asset_id: string;
+  asset_name: string;
+  yard: string | null;
+  meter_hours: string;
+  meta: { code?: string };
+  hours_over: string;
+}
+
+export interface CorrectiveActionRow {
+  id: string;
+  code: string;
+  title: string;
+  detail: string | null;
+  source: "prestart" | "audit" | "incident" | "manual";
+  status: "open" | "closed";
+  closed_note: string | null;
+  asset_name: string | null;
+  created_at: string;
+}
+
+export interface WorkshopQueue {
+  due_services: DueService[];
+  open_corrective_actions: CorrectiveActionRow[];
+}
+
+export interface FloatRow {
+  id: string;
+  code: string;
+  asset_name: string;
+  meta: { code?: string };
+  job_code: string | null;
+  from_yard: string;
+  to_site: string;
+  float_date: string;
+  km: string;
+  mobilisation_cents: number;
+  cents_per_km: number;
+  charge_cents: number;
+  status: "planned" | "completed" | "cancelled";
+}
+
+export interface EvidenceItem {
+  outcome: string;
+  kind: string;
+  summary: string;
+  asset_name: string | null;
+  date: string;
+  source: "vault" | "prestarts" | "workshop" | "corrective_actions";
+}
+
+export interface EvidenceVault {
+  outcomes: Record<string, string>;
+  counts: Record<string, number>;
+  items: EvidenceItem[];
+}
+
+/* --------------------- Platform console (god-mode) --------------------- */
+
+export interface InstanceRow {
+  id: string;
+  slug: string;
+  name: string;
+  theme: string;
+  modules: Record<string, string>;
+  is_demo: boolean;
+  created_at: string;
+  users: number;
+  jobs: number;
+  review_queue: number;
+  verified: number;
+  corrected: number;
+  last_activity: string | null;
+  pilot: boolean;
+  ledger: string | null;
+  ledger_connected: boolean;
+  ai: { provider?: string; chain?: string[]; thresholds?: Record<string, number>; budget_cents?: number };
+  extraction_accuracy: number | null;
+}
+
+export interface FoundryMenu {
+  catalogue: Record<string, { label: string; blurb: string; bundle: string[] }>;
+  themes: string[];
+}
+
+export interface FoundryResult {
+  org_id: string;
+  manifest: Record<string, unknown>;
+  credentials: { owner_email: string; owner_password: string; crew_pin: string };
+}
+
+/** Console calls carry the BAD FORM staff key, never a client session token. */
+export async function platformApi<T>(
+  staffKey: string,
+  path: string,
+  opts: { method?: string; body?: unknown; form?: FormData } = {},
+): Promise<T> {
+  const headers: Record<string, string> = { Authorization: `Bearer ${staffKey}` };
+  let payload: BodyInit | undefined;
+  if (opts.form) {
+    payload = opts.form;
+  } else if (opts.body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    payload = JSON.stringify(opts.body);
+  }
+  const res = await fetch(`/api/platform${path}`, {
+    method: opts.method ?? (payload !== undefined ? "POST" : "GET"),
+    headers,
+    body: payload,
+  });
+  if (!res.ok) {
+    let detail = `Request failed (${res.status})`;
+    try {
+      const data = (await res.json()) as { detail?: string };
+      if (data.detail) detail = data.detail;
+    } catch {
+      // non-JSON error body: keep the status message
+    }
+    throw new ApiError(res.status, detail);
+  }
+  return (await res.json()) as T;
+}
