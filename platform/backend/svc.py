@@ -48,6 +48,24 @@ def rows(rs) -> list[dict]:
     return [row_dict(r) for r in rs]
 
 
+def _json_default(v):
+    from decimal import Decimal
+    from uuid import UUID
+
+    if isinstance(v, Decimal):
+        return float(v)
+    if isinstance(v, (date, datetime)):
+        return v.isoformat()
+    if isinstance(v, UUID):
+        return str(v)
+    raise TypeError(f"not JSON serializable: {type(v)}")
+
+
+def dumps(obj) -> str:
+    """json.dumps that survives asyncpg row values (Decimal, date, UUID)."""
+    return json.dumps(obj, default=_json_default)
+
+
 CODE_RE = re.compile(r"^([A-Za-z]+)-?(\d+)$")
 
 
