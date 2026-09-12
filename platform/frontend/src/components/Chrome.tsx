@@ -48,7 +48,12 @@ export function ThemeSwitch({ testId }: ThemeSwitchProps) {
   return (
     <label className="bf-label" style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
       Theme
-      <select data-testid={testId ?? "theme-switch"} value={theme} onChange={(e) => setTheme(e.target.value as ThemeName)}>
+      <select
+        className="bf-compact"
+        data-testid={testId ?? "theme-switch"}
+        value={theme}
+        onChange={(e) => setTheme(e.target.value as ThemeName)}
+      >
         {THEMES.map((t) => (
           <option key={t} value={t}>
             {THEME_LABEL[t]}

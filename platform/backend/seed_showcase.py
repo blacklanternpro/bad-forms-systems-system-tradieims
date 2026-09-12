@@ -30,6 +30,12 @@ MODULES = {
     "fleet": "live",
 }
 
+SHOWCASE_BRAND = {
+    "letterhead_line": "BAD FORM Systems — operations IMS (demo)",
+    "colour": "#1f4d3a",
+    "tokens": {"--mark": "#1f4d3a"},
+}
+
 ITP_STAGES = [
     {"name": "Material receipt & heat verification", "requires_photo": True},
     {"name": "Cut & prep", "requires_photo": False},
@@ -41,7 +47,12 @@ ITP_STAGES = [
 
 
 async def seed_showcase() -> str | None:
-    if await db.fetchrow("SELECT id FROM organisations WHERE slug='systems'"):
+    existing = await db.fetchrow("SELECT id FROM organisations WHERE slug='systems'")
+    if existing:
+        await db.execute(
+            "UPDATE organisations SET brand=$1 WHERE slug='systems'",
+            json.dumps(SHOWCASE_BRAND),
+        )
         return None
 
     org = await db.fetchrow(
@@ -51,11 +62,7 @@ async def seed_showcase() -> str | None:
         json.dumps({"job": "job", "quote": "quote", "cert": "certificate"}),
         json.dumps(MODULES),
         json.dumps(SETTINGS),
-        json.dumps({
-            "letterhead_line": "BAD FORM Systems — operations IMS (demo)",
-            "colour": "#1f4d3a",
-            "tokens": {"--mark": "#1f4d3a"},
-        }),
+        json.dumps(SHOWCASE_BRAND),
     )
     oid = org["id"]
     today = svc.today_awst()

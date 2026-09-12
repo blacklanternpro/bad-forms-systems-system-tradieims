@@ -275,9 +275,11 @@ textarea {
 }
 
 .bf-mast select,
-.bf-nav select {
-  min-height: 36px;
-  padding: 4px 8px;
+.bf-nav select,
+select.bf-compact {
+  min-height: 32px;
+  padding: 2px 8px;
+  font-size: 12px;
 }
 
 .bf-sheet {

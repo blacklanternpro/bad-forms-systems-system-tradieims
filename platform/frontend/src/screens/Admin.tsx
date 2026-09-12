@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, clearDemo, getSession, getVirginToken, setSession, subscribeVirgin, type OrgAdmin, type OrgBrand, type OrgUser } from "../api";
 import Button from "../components/Button";
-import { THEMES, applyBrand, applyTheme, type ThemeName } from "../components/Chrome";
+import { Chip, THEMES, applyBrand, applyTheme, type ThemeName } from "../components/Chrome";
 import Field from "../components/Field";
 import LedgerTable from "../components/LedgerTable";
 import Sheet from "../components/Sheet";
@@ -99,11 +99,15 @@ export default function Admin() {
         </p>
 
         <h3 className="bf-h3" style={{ marginTop: 22 }}>Look</h3>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <div className="bf-chip-row" style={{ marginTop: 8 }}>
           {THEMES.map((t) => (
-            <Button key={t} kind={o.theme === t ? "mark" : "quiet"} disabled={act.busy} onClick={() => setTheme(t)} testId={`theme-${t}`}>
-              {t}
-            </Button>
+            <Chip
+              key={t}
+              testId={`theme-${t}`}
+              active={o.theme === t}
+              onClick={() => setTheme(t)}
+              label={t.replace(/-/g, " ")}
+            />
           ))}
         </div>
 
