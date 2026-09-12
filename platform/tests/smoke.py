@@ -1,10 +1,11 @@
-"""Live smoke: boots uvicorn on :8010 against embedded Postgres, seeds the demo
-yard, and walks the kernel surface as a real HTTP client. This is the phase
-gate — run it before claiming a phase done.
+"""Live smoke — the phase parity gate. Boots uvicorn on :8010 against embedded
+Postgres, seeds the generic demo yard plus both synthetic trades yards, and
+walks the entire surface as a real HTTP client (55+ checks).
 
 Run: python3 tests/smoke.py
 """
 import asyncio
+import io
 import os
 import subprocess
 import sys
@@ -59,12 +60,14 @@ def ensure_db() -> None:
 def reset_and_seed() -> None:
     import db
     import seed
+    from packs.trades import seed_trades
 
     async def run():
         p = await db.pool()
         await p.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
         await db.migrate()
         await seed.seed_demo_yard()
+        await seed_trades.seed_trades_yards()
         await db.close()
 
     asyncio.run(run())
@@ -82,73 +85,193 @@ def wait_for_server(proc: subprocess.Popen) -> bool:
     return False
 
 
-def run_checks() -> None:
-    c = httpx.Client(base_url=BASE, timeout=10)
+def hdr(c: httpx.Client, email: str, password: str) -> dict:
+    r = c.post("/api/auth/login", json={"email": email, "password": password})
+    return {"Authorization": f"Bearer {r.json()['token']}"}
 
-    r = c.get("/api/health")
-    check("health", r.status_code == 200 and r.json()["ok"])
 
-    r = c.post("/api/auth/login", json={"email": "owner@demo.local", "password": "demo-owner"})
-    check("owner login", r.status_code == 200, r.text)
-    h = {"Authorization": f"Bearer {r.json()['token']}"}
+def kernel_checks(c: httpx.Client) -> None:
+    print("— kernel: auth, desk, jobs, board —")
+    check("health", c.get("/api/health").json()["ok"] is True)
+
+    check("owner login", c.post("/api/auth/login", json={"email": "owner@demo.local", "password": "demo-owner"}).status_code == 200)
+    h = hdr(c, "owner@demo.local", "demo-owner")
+    check("bad password rejected", c.post("/api/auth/login", json={"email": "owner@demo.local", "password": "nope"}).status_code == 401)
 
     r = c.post("/api/auth/pin", json={"org_slug": "demo", "pin": "1111"})
-    check("crew PIN login", r.status_code == 200, r.text)
+    check("crew PIN login", r.status_code == 200)
     hc = {"Authorization": f"Bearer {r.json()['token']}"}
+    check("wrong PIN rejected", c.post("/api/auth/pin", json={"org_slug": "demo", "pin": "9999"}).status_code == 401)
+    check("crew blocked from office API", c.get("/api/quotes", headers=hc).status_code == 403)
+    check("anonymous blocked", c.get("/api/jobs").status_code == 401)
 
-    r = c.get("/api/nudge", headers=h)
-    check("morning nudge", r.status_code == 200 and "review_count" in r.json(), r.text)
+    check("morning nudge", "review_count" in c.get("/api/nudge", headers=h).json())
+    jobs = c.get("/api/jobs", headers=h).json()
+    check("jobs list seeded", len(jobs) >= 3)
+    live = next(j for j in jobs if j["code"] == "J-0001")
+    detail = c.get(f"/api/jobs/{live['id']}", headers=h).json()
+    check("job detail + live costing", "costing" in detail and detail["costing"]["quoted_cents"] > 0)
+    check("job timeline present", isinstance(detail["timeline"], list))
 
-    r = c.get("/api/jobs", headers=h)
-    check("jobs list", r.status_code == 200 and len(r.json()) >= 3, r.text)
-    live = next(j for j in r.json() if j["code"] == "J-0001")
+    check("day board", c.get("/api/dayboard", headers=h).json()["jobs"])
+    check("week board", len(c.get("/api/weekboard", headers=h).json()["days"]) == 7)
+    check("copy yesterday", c.post("/api/dayboard/copy-previous", headers=h).status_code == 200)
+    pdf = c.get("/api/dayboard/sheet.pdf", headers=h)
+    check("day sheet PDF", pdf.status_code == 200 and pdf.content[:4] == b"%PDF")
 
-    r = c.get(f"/api/jobs/{live['id']}", headers=h)
-    check("job detail + costing", r.status_code == 200 and "costing" in r.json(), r.text)
+    print("— kernel: clients, quotes, price books —")
+    clients = c.get("/api/clients", headers=h).json()
+    check("clients list", len(clients) >= 2)
+    nc = c.post("/api/clients", headers=h, json={"name": "Smoke St Strata", "contact_name": "Q. Tester"})
+    check("client create", nc.status_code == 200)
+    check("enquiry create", c.post("/api/enquiries", headers=h, json={"name": "Fence quote walk-in", "contact": "0400 000 000"}).status_code == 200)
 
-    r = c.get("/api/dayboard", headers=h)
-    check("day board", r.status_code == 200, r.text)
+    q = c.post("/api/quotes", headers=h, json={
+        "title": "Smoke test quote", "client_id": nc.json()["id"],
+        "lines": [{"description": "Labour", "qty": 4, "unit_cents": 14000}, {"description": "Materials", "qty": 1, "unit_cents": 52000}],
+    })
+    check("quote create with lines", q.status_code == 200)
+    qid = q.json()["id"]
+    sent = c.post(f"/api/quotes/{qid}/send", headers=h)
+    check("quote send issues token", sent.status_code == 200 and sent.json()["accept_token"])
+    token = sent.json()["accept_token"]
+    check("public quote view", c.get(f"/api/public/quote/{token}").json()["total_ex_cents"] == 108000)
+    check("public quote accept", c.post(f"/api/public/quote/{token}/accept", json={"name": "Q. Tester"}).status_code == 200)
+    tj = c.post(f"/api/quotes/{qid}/to-job", headers=h)
+    check("accepted quote to job", tj.status_code == 200 and tj.json()["quoted_cents"] == 108000)
+    qpdf = c.get(f"/api/quotes/{qid}/pdf", headers=h)
+    check("quote PDF", qpdf.status_code == 200 and qpdf.content[:4] == b"%PDF")
+    check("price book search effective-dated", any("cable" in x["description"].lower() for x in c.get("/api/pricebooks/search?q=cable", headers=h).json()))
 
-    r = c.get("/api/dayboard/sheet.pdf", headers=h)
-    check("day sheet PDF", r.status_code == 200 and r.content[:4] == b"%PDF", r.text[:80])
+    print("— kernel: capture pipeline + verify gate —")
+    cap = c.post("/api/captures", headers=h, data={"capture_type": "receipt", "job_id": live["id"]},
+                 files={"file": ("r.jpg", b"\xff\xd8x", "image/jpeg")}).json()
+    check("receipt fast-tracks at 0.94", cap["routing"] == "fast_track" and cap["confidence"] == 0.94)
+    ver = c.post(f"/api/captures/{cap['id']}/verify", headers=h, json={})
+    check("verify allocates ACCPAY draft", ver.json()["allocation"]["kind"] == "ledger_draft")
+    check("ledger draft recorded", any(d["kind"] == "ACCPAY" for d in c.get("/api/ledger/drafts", headers=h).json()))
 
-    r = c.post(
-        "/api/captures", headers=h,
-        data={"capture_type": "receipt", "job_id": live["id"]},
-        files={"file": ("r.jpg", b"\xff\xd8x", "image/jpeg")},
-    )
-    check("receipt capture fast-tracks", r.status_code == 200 and r.json()["routing"] == "fast_track", r.text)
-    cap_id = r.json()["id"]
+    low = c.post("/api/captures", headers=h, data={"capture_type": "mystery_docket"}).json()
+    check("unknown capture routes to review", low["routing"] == "review")
+    check("review queue holds it", any(x["id"] == low["id"] for x in c.get("/api/captures?status=needs_verify", headers=h).json()))
+    check("review notification emitted", any(n["event_type"] == "capture_review" for n in c.get("/api/notifications", headers=h).json()))
+    check("reject capture", c.post(f"/api/captures/{low['id']}/reject", headers=h, json={"note": "unreadable"}).status_code == 200)
 
-    r = c.post(f"/api/captures/{cap_id}/verify", headers=h, json={})
-    check("verify allocates ledger draft", r.status_code == 200 and r.json()["allocation"]["kind"] == "ledger_draft", r.text)
+    vt = c.post("/api/captures", headers=hc, data={"capture_type": "voice_timesheet", "job_id": live["id"]}).json()
+    tv = c.post(f"/api/captures/{vt['id']}/verify", headers=h, json={"fields": {**vt["extracted"], "ended": "15:00"}})
+    check("voice timesheet corrected + allocated", tv.json()["allocation"]["kind"] == "time_entry")
+    check("correction audited", any(a["action"] == "extraction.corrected" for a in c.get("/api/org/audit", headers=h).json()))
 
-    r = c.get("/api/public/quote/demo-quote-token")
-    check("public quote view", r.status_code == 200 and r.json()["code"] == "Q-0001", r.text)
+    print("— kernel: procurement three-way match —")
+    po = c.post("/api/pos", headers=h, json={"supplier": "Rexel", "job_id": live["id"], "lines": [
+        {"description": "Conduit 25mm", "qty": 10, "unit_cents": 900}, {"description": "Junction boxes", "qty": 4, "unit_cents": 450}]}).json()
+    lines = c.get(f"/api/pos/{po['id']}", headers=h).json()["lines"]
+    part = c.post(f"/api/pos/{po['id']}/receive", headers=h, json={"line_receipts": {lines[0]["id"]: 6}})
+    check("partial receive stays open", part.json()["complete"] is False)
+    check("backorders listed", any(b["description"] == "Conduit 25mm" for b in c.get("/api/pos/backorders", headers=h).json()))
+    full = c.post(f"/api/pos/{po['id']}/receive", headers=h, json={"line_receipts": {lines[0]["id"]: 4, lines[1]["id"]: 4}})
+    check("full receive closes PO", full.json()["complete"] is True)
+    check("match demands verified receipt", c.post(f"/api/pos/{po['id']}/match", headers=h, json={"capture_id": vt["id"]}).status_code == 400)
+    check("three-way match", c.post(f"/api/pos/{po['id']}/match", headers=h, json={"capture_id": cap["id"]}).status_code == 200)
 
-    r = c.post("/api/public/quote/demo-quote-token/accept", json={"name": "Smoke Test"})
-    check("public quote accept", r.status_code == 200, r.text)
+    print("— kernel: invoicing, chase, reports —")
+    done = next(j for j in c.get("/api/jobs", headers=h).json() if j["code"] == "J-0003")
+    chase = c.get("/api/invoicing/chase", headers=h).json()
+    check("chase flags uninvoiced done job", any(x["code"] == "J-0003" for x in chase["uninvoiced"]))
+    dep = c.post("/api/invoices", headers=h, json={"job_id": done["id"], "kind": "deposit", "lines": [{"description": "Deposit", "qty": 1, "unit_cents": 10000}]})
+    check("deposit invoice", dep.status_code == 200 and dep.json()["kind"] == "deposit")
+    claim = c.post("/api/invoices", headers=h, json={"job_id": done["id"], "kind": "claim", "claim_pct": 50, "retention_pct": 10})
+    check("progress claim with retention", claim.json()["total_ex_cents"] == round(done["quoted_cents"] * 0.5 * 0.9))
+    inv = c.post("/api/invoices", headers=h, json={"job_id": done["id"]}).json()
+    push = c.post(f"/api/invoices/{inv['id']}/push", headers=h)
+    check("invoice push returns ledger ref", bool(push.json()["ledger_ref"]))
+    check("pushed job flips to invoiced", next(j for j in c.get("/api/jobs", headers=h).json() if j["code"] == "J-0003")["status"] == "invoiced")
+    c.post(f"/api/ledger/mock/invoices/{inv['id']}/status", headers=h, json={"status": "overdue"})
+    check("overdue lands on chase list", any(x["code"] == inv["code"] for x in c.get("/api/invoicing/chase", headers=h).json()["overdue"]))
+    c.post(f"/api/ledger/mock/invoices/{inv['id']}/status", headers=h, json={"status": "paid"})
+    check("paid clears the chase", not any(x["code"] == inv["code"] for x in c.get("/api/invoicing/chase", headers=h).json()["overdue"]))
 
-    r = c.get("/api/public/plate/demo-plate-token")
-    check("site plate board", r.status_code == 200, r.text)
+    wip = c.get("/api/reports/wip", headers=h).json()
+    check("WIP report totals", wip["total_quoted_cents"] > 0)
+    check("margin provenance", "provenance" in c.get(f"/api/reports/margin/{live['id']}", headers=h).json())
+    payroll = c.get("/api/reports/payroll-export", headers=h)
+    check("payroll CSV export", payroll.status_code == 200 and payroll.text.startswith("name,date,job,hours"))
+    check("global search", c.get("/api/search?q=Seaview", headers=h).json()["jobs"])
 
-    r = c.get("/api/field/today", headers=hc)
-    check("field today board", r.status_code == 200 and r.json()["jobs"], r.text)
+    print("— kernel: field, plate, admin —")
+    today = c.get("/api/field/today", headers=hc).json()
+    check("field today board", any(j["code"] == "J-0001" for j in today["jobs"]))
+    jid = next(j["job_id"] for j in today["jobs"] if j["code"] == "J-0001")
+    pack = c.get(f"/api/field/jobs/{jid}", headers=hc).json()
+    check("job pack gate code", pack["job"]["gate_code"] == "#4471")
+    check("clock on", c.post(f"/api/field/jobs/{jid}/time", headers=hc, json={"action": "start"}).status_code == 200)
+    check("double clock-on blocked", c.post(f"/api/field/jobs/{jid}/time", headers=hc, json={"action": "start"}).status_code == 400)
+    check("clock off", c.post(f"/api/field/jobs/{jid}/time", headers=hc, json={"action": "stop"}).status_code == 200)
+    stages = pack["stages"]
+    photo_stage = next(s for s in stages if s["requires_photo"] and not s["completed_at"])
+    check("photo-gated stage sign-off", c.post(f"/api/field/jobs/{jid}/stage-done", headers=hc, json={"stage_id": photo_stage["id"]}).status_code == 200)
 
-    r = c.get("/api/quotes/" + next(
-        q["id"] for q in c.get("/api/quotes", headers=h).json() if q["code"] == "Q-0001"
-    ) + "/pdf", headers=h)
-    check("quote PDF", r.status_code == 200 and r.content[:4] == b"%PDF", r.text[:80])
+    board = c.get("/api/public/plate/demo-plate-token").json()
+    check("site plate board", board["site_name"] == "Seaview Apartments")
+    si = c.post("/api/public/plate/demo-plate-token/sign-in", json={"name": "Smoke Visitor", "kind": "visitor"}).json()
+    check("plate sign-in", si["ok"] is True)
+    check("plate sign-out", c.post("/api/public/plate/demo-plate-token/sign-out", json={"sign_in_id": si["sign_in_id"]}).status_code == 200)
 
-    r = c.get("/api/invoicing/chase", headers=h)
-    check("chase list", r.status_code == 200 and "on_table_cents" in r.json(), r.text)
+    check("licences expiring", len(c.get("/api/org/licences/expiring", headers=h).json()) >= 1)
+    check("org theme patch", c.request("PATCH", "/api/org", headers=h, json={"theme": "amber-on-void"}).status_code == 200)
+    check("modules patch", c.request("PATCH", "/api/org/modules", headers=h, json={"modules": {"trades": "off"}}).status_code == 200)
+    check("ledger connect", c.post("/api/org/ledger/connect", headers=h, json={"provider": "xero-mock"}).json()["status"] == "connected")
+    exp = c.get("/api/org/export", headers=h).json()
+    check("data export guarantee", len(exp["jobs"]) >= 3 and "captures" in exp)
+    check("notifications read-all", c.post("/api/notifications/read-all", headers=h).status_code == 200)
 
-    r = c.get("/api/search?q=Seaview", headers=h)
-    check("global search", r.status_code == 200 and (r.json()["jobs"] or r.json()["clients"]), r.text)
 
-    r = c.get("/api/notifications", headers=h)
-    check("notifications", r.status_code == 200, r.text)
+def trades_checks(c: httpx.Client) -> None:
+    print("— trades pack: gating, variations, certificates —")
+    hd = hdr(c, "owner@demo.local", "demo-owner")
+    check("trades gated off generic yard", c.get("/api/trades/certs", headers=hd).status_code == 501)
 
+    h = hdr(c, "owner@voltline.local", "voltline-owner")
+    jobs = c.get("/api/jobs", headers=h).json()
+    check("voltline yard seeded", len(jobs) == 2)
+    live = next(j for j in jobs if j["code"] == "J-0001")
+
+    vs = c.get("/api/trades/variations", headers=h).json()
+    check("seeded variation proposed", vs and vs[0]["status"] == "proposed")
+    dec = c.post(f"/api/trades/variations/{vs[0]['id']}/decide", headers=h, json={"decision": "approved", "decided_by_name": "M. Chen"})
+    check("variation approved", dec.status_code == 200)
+    after = next(j for j in c.get("/api/jobs", headers=h).json() if j["code"] == "J-0001")["quoted_cents"]
+    check("approval grows job value", after == live["quoted_cents"] + vs[0]["amount_cents"])
+    check("re-decide blocked", c.post(f"/api/trades/variations/{vs[0]['id']}/decide", headers=h, json={"decision": "declined", "decided_by_name": "X"}).status_code == 409)
+
+    cert = c.post("/api/trades/certs", headers=h, json={"kind": "electrical_compliance", "job_id": live["id"],
+                                                        "fields": {"installation_address": "7/22 Harbour Rd", "result": "pass"}}).json()
+    check("cert numbering continues series", cert["code"] == "CEC-0002")
+    check("unknown cert kind refused", c.post("/api/trades/certs", headers=h, json={"kind": "vibes", "fields": {}}).status_code == 400)
+    check("cert issue", c.post(f"/api/trades/certs/{cert['id']}/issue", headers=h).json()["status"] == "issued")
+    check("issued cert immutable", c.request("PATCH", f"/api/trades/certs/{cert['id']}", headers=h, json={"fields": {}}).status_code == 404)
+    cpdf = c.get(f"/api/trades/certs/{cert['id']}/pdf", headers=h)
+    check("cert PDF", cpdf.status_code == 200 and cpdf.content[:4] == b"%PDF")
+
+    r = c.post("/api/auth/pin", json={"org_slug": "sitecast", "pin": "4321"})
+    hc = {"Authorization": f"Bearer {r.json()['token']}"}
+    fj = c.get("/api/field/today", headers=hc).json()["jobs"]
+    check("sitecast crew field board", len(fj) == 1)
+    vr = c.post("/api/trades/variations", headers=hc, json={"job_id": fj[0]["job_id"], "title": "Pump hire", "amount_cents": 38000})
+    check("crew raises variation from field", vr.status_code == 200 and vr.json()["code"] == "V-0002")
+    hs = hdr(c, "owner@sitecast.local", "sitecast-owner")
+    check("variation notification to office", any(n["event_type"] == "variation_raised" for n in c.get("/api/notifications", headers=hs).json()))
+    me = c.get("/api/me", headers=hs).json()
+    check("sitecast terminology (pour)", me["org"]["terminology"]["job"] == "pour")
+    check("sitecast public quote live", c.get("/api/public/quote/sitecast-quote-token").json()["status"] == "sent")
+
+    check("voice timesheet fixture reads window", c.post("/api/captures", headers=hc, data={"capture_type": "voice_timesheet", "job_id": fj[0]["job_id"]}).json()["extracted"]["started"] == "07:00")
+
+
+def run_checks() -> None:
+    c = httpx.Client(base_url=BASE, timeout=10)
+    kernel_checks(c)
+    trades_checks(c)
     c.close()
 
 

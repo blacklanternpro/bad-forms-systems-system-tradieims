@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { api, type FieldJobPack } from "../../api";
+import { api, moduleLive, type FieldJobPack } from "../../api";
 import Button from "../../components/Button";
 import Sheet from "../../components/Sheet";
 import Stamp from "../../components/Stamp";
 import { EmptyView, ErrorView, LoadingView } from "../../components/StatusViews";
 import { useAction, useLoad } from "../../hooks";
+import { RaiseVariation } from "../trades/Variations";
 
 const CAPTURE_TYPES = [
   { value: "receipt", label: "RECEIPT / SUPPLIER INVOICE" },
@@ -21,6 +22,7 @@ export default function FieldJob() {
   const pack = useLoad(() => api<FieldJobPack>(`/field/jobs/${id}`), [id]);
   const act = useAction();
   const [capOpen, setCapOpen] = useState(false);
+  const [varOpen, setVarOpen] = useState(false);
   const [capType, setCapType] = useState<string>("receipt");
   const [capResult, setCapResult] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -95,7 +97,14 @@ export default function FieldJob() {
         <Button kind="accent" full onClick={() => { setCapResult(null); setCapOpen(true); }} testId="capture-open">
           CAPTURE PAPERWORK
         </Button>
+        {moduleLive("trades") && (
+          <Button kind="quiet" full onClick={() => setVarOpen(true)} testId="variation-open">
+            RAISE VARIATION
+          </Button>
+        )}
       </div>
+
+      {moduleLive("trades") && id && <RaiseVariation jobId={id} open={varOpen} onClose={() => setVarOpen(false)} />}
 
       <h3 className="bf-label">STAGES</h3>
       {p.stages.length === 0 ? (

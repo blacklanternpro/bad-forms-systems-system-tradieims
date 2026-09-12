@@ -14,6 +14,8 @@ EVENT_DEFAULTS: dict[str, str] = {
     "service_due": "staff",
     "po_backorder": "staff",
     "assignment_changed": "crew",
+    "variation_raised": "staff",
+    "quote_accepted": "staff",
     "sync_failed": "staff",
     "incident_reported": "owner",
 }

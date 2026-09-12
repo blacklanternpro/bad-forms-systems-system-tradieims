@@ -1,9 +1,10 @@
 import { useParams } from "react-router-dom";
-import { api, money, type JobDetail as Detail } from "../api";
+import { api, moduleLive, money, type JobDetail as Detail } from "../api";
 import Button from "../components/Button";
 import Stamp, { type StampTone } from "../components/Stamp";
 import { EmptyView, ErrorView, LoadingView } from "../components/StatusViews";
 import { useAction, useLoad } from "../hooks";
+import { JobVariations } from "./trades/Variations";
 
 const NEXT_STATUS: Record<string, { to: string; verb: string } | undefined> = {
   quoted: { to: "scheduled", verb: "SCHEDULE" },
@@ -139,6 +140,12 @@ export default function JobDetail() {
             </ul>
           )}
         </section>
+
+        {moduleLive("trades") && id && (
+          <section aria-label="Variations">
+            <JobVariations jobId={id} onChanged={d.reload} />
+          </section>
+        )}
 
         <section aria-labelledby="timeline-h">
           <h3 id="timeline-h" className="bf-label">TIMELINE</h3>

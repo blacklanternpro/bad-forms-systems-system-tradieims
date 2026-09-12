@@ -74,6 +74,36 @@ def lines_pdf(org: dict, title: str, meta: list[tuple[str, str]], lines: list[di
     return buf.getvalue()
 
 
+def form_pdf(org: dict, title: str, fields: list[tuple[str, str]], footer_note: str = "") -> bytes:
+    """Form-fill document: label/value pairs down the page (certificates, dockets)."""
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    w, _ = A4
+    y = _letterhead(c, org, title)
+    for label, value in fields:
+        c.setFont("Courier-Bold", 8)
+        c.drawString(20 * mm, y, label.upper())
+        y -= 4.5 * mm
+        c.setFont("Courier", 10)
+        for chunk in [str(value)[i : i + 80] for i in range(0, max(len(str(value)), 1), 80)]:
+            c.drawString(20 * mm, y, chunk)
+            y -= 5 * mm
+        c.setLineWidth(0.3)
+        c.line(20 * mm, y + 1.5 * mm, w - 20 * mm, y + 1.5 * mm)
+        y -= 4 * mm
+        if y < 30 * mm:
+            c.showPage()
+            y = _letterhead(c, org, title)
+    if footer_note:
+        c.setFont("Helvetica-Oblique", 8)
+        c.drawString(20 * mm, max(y - 6 * mm, 22 * mm), footer_note)
+    c.setFont("Helvetica", 7)
+    c.drawString(20 * mm, 15 * mm, f"Generated {date.today().isoformat()} — BAD FORM Systems platform")
+    c.showPage()
+    c.save()
+    return buf.getvalue()
+
+
 def day_sheet_pdf(org: dict, day: str, rows: list[dict]) -> bytes:
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=A4)

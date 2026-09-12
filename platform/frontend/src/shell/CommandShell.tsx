@@ -1,16 +1,21 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { api, getSession, setSession, type NotificationRow } from "../api";
+import { api, getSession, moduleLive, setSession, type NotificationRow } from "../api";
 import { GloveToggle, ThemeSwitch } from "../components/Chrome";
 
-const NAV: { to: string; label: string }[] = [
-  { to: "/desk", label: "DESK" },
-  { to: "/dayboard", label: "DAY BOARD" },
-  { to: "/jobs", label: "JOBS" },
-  { to: "/quotes", label: "QUOTES" },
-  { to: "/inbox", label: "INBOX" },
-  { to: "/admin", label: "ADMIN" },
-];
+/** Nav is composed per instance: pack entries only appear when the module is live. */
+function navItems(): { to: string; label: string }[] {
+  const items = [
+    { to: "/desk", label: "DESK" },
+    { to: "/dayboard", label: "DAY BOARD" },
+    { to: "/jobs", label: "JOBS" },
+    { to: "/quotes", label: "QUOTES" },
+    { to: "/inbox", label: "INBOX" },
+  ];
+  if (moduleLive("trades")) items.push({ to: "/certs", label: "CERTS" });
+  items.push({ to: "/admin", label: "ADMIN" });
+  return items;
+}
 
 export interface CommandShellProps { children: ReactNode }
 
@@ -60,7 +65,7 @@ export default function CommandShell({ children }: CommandShellProps) {
       </header>
 
       <nav aria-label="Primary" style={{ display: "flex", flexWrap: "wrap", gap: 4, margin: "12px 0 20px" }}>
-        {NAV.map((n) => (
+        {navItems().map((n) => (
           <NavLink
             key={n.to}
             to={n.to}

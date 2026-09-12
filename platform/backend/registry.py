@@ -7,6 +7,8 @@ must gate themselves with kernel.common.require_module.
 
 from fastapi import FastAPI
 
+from packs.trades import routes as trades_routes
+
 from kernel import (
     routes_auth,
     routes_capture,
@@ -36,7 +38,9 @@ KERNEL = [
 ]
 
 # (pack_name, router) — populated as sector packs land.
-PACKS: list[tuple[str, object]] = []
+PACKS: list[tuple[str, object]] = [
+    ("trades", trades_routes.r),
+]
 
 
 def mount(app: FastAPI) -> None:

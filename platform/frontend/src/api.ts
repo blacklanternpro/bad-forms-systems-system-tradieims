@@ -202,3 +202,35 @@ export interface OrgAdmin {
 }
 
 export interface OrgUser { id: string; name: string; email: string | null; role: string; pin: string | null; active: boolean }
+
+/* ------------------------------ Trades pack ------------------------------ */
+
+export interface VariationRow {
+  id: string;
+  code: string;
+  title: string;
+  detail: string | null;
+  amount_cents: number;
+  status: "proposed" | "approved" | "declined";
+  job_code: string;
+  job_title: string;
+  raised_by_name: string | null;
+  decided_by_name: string | null;
+  created_at: string;
+}
+
+export interface CertRow {
+  id: string;
+  code: string;
+  kind: string;
+  status: "draft" | "issued";
+  job_code: string | null;
+  fields: Record<string, string>;
+  issued_at: string | null;
+  created_at: string;
+}
+
+export function moduleLive(name: string): boolean {
+  const s = getSession();
+  return s?.org.modules[name] === "live";
+}

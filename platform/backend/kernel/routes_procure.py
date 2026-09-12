@@ -52,6 +52,18 @@ async def po_create(body: PoIn, u=Depends(auth.staff)):
     return svc.row_dict(po)
 
 
+@r.get("/pos/backorders")
+async def backorders(u=Depends(auth.staff)):
+    rows = await db.fetch(
+        """SELECT p.code, p.supplier, l.description, l.qty, l.received_qty FROM po_lines l
+           JOIN purchase_orders p ON p.id=l.po_id
+           WHERE l.org_id=$1 AND p.status='open' AND l.received_qty < l.qty AND l.received_qty > 0
+           ORDER BY p.code""",
+        u["org_id"],
+    )
+    return svc.rows(rows)
+
+
 @r.get("/pos/{pid}")
 async def po_detail(pid: str, u=Depends(auth.staff)):
     po = await db.fetchrow("SELECT * FROM purchase_orders WHERE org_id=$1 AND id=$2", u["org_id"], pid)
@@ -98,15 +110,3 @@ async def po_match(pid: str, body: MatchIn, u=Depends(auth.staff)):
         raise HTTPException(400, "Verify the receipt first")
     await db.execute("UPDATE purchase_orders SET status='matched' WHERE org_id=$1 AND id=$2", u["org_id"], pid)
     return {"ok": True}
-
-
-@r.get("/pos/backorders")
-async def backorders(u=Depends(auth.staff)):
-    rows = await db.fetch(
-        """SELECT p.code, p.supplier, l.description, l.qty, l.received_qty FROM po_lines l
-           JOIN purchase_orders p ON p.id=l.po_id
-           WHERE l.org_id=$1 AND p.status='open' AND l.received_qty < l.qty AND l.received_qty > 0
-           ORDER BY p.code""",
-        u["org_id"],
-    )
-    return svc.rows(rows)

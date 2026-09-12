@@ -15,6 +15,7 @@ import Login from "./screens/Login";
 import Notifications from "./screens/Notifications";
 import Quotes from "./screens/Quotes";
 import Search from "./screens/Search";
+import Certs from "./screens/trades/Certs";
 import CommandShell from "./shell/CommandShell";
 import FieldShell from "./shell/FieldShell";
 
@@ -68,6 +69,7 @@ export default function App() {
       <Route path="/notifications" element={cc(<Notifications />)} />
       <Route path="/admin" element={cc(<Admin />)} />
       <Route path="/search" element={cc(<Search />)} />
+      <Route path="/certs" element={cc(<Certs />)} />
 
       <Route path="/field" element={field(<FieldToday />)} />
       <Route path="/field/jobs/:id" element={field(<FieldJob />)} />
