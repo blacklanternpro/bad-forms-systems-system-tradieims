@@ -66,7 +66,8 @@ async def field_job(jid: str, u=Depends(crew)):
     def cl(rows): return [{k: (v if isinstance(v, (int, float, bool, type(None), str)) else str(v)) for k, v in x.items()} for x in rows]
     return {"job": {"id": str(j["id"]), "code": j["code"], "title": j["title"], "status": j["status"], "billing": j["billing"]},
             "client": dict(client), "bill_to": dict(bill_to), "site": dict(site) if site else None,
-            "documents": cl(docs), "variations": cl(variations), "extras": cl(extras), "hours": cl(hours)}
+            "documents": cl(docs), "variations": cl(variations), "extras": cl(extras), "hours": cl(hours),
+            "next_cert_no": await svc.next_cert_no(u["org_id"])}
 
 @r.post("/field/jobs/{jid}/capture")
 async def capture(jid: str, file: UploadFile = File(...), kind: str = Form("docket_photo"),
@@ -182,41 +183,45 @@ async def send_variation(vid: str, body: dict = Body(default={}), u=Depends(anyu
     await svc.queue_mail(u["org_id"], to_email, f"Sign variation {v['code']} — {j['code']}", "variation_send", v["id"])
     return {"send_id": str(send["id"]), "sign_path": f"/s/{tok}", "to_email": to_email}
 
-async def _store_cert(u, j, name, data):
+async def _store_cert(u, j, name, data, cert_no=None):
+    cert_no = svc.allocate_cert_no(u["org_id"], cert_no)
     path = svc.save_bytes(u["org_id"], data, "pdf", "application/pdf")
-    doc = await svc.add_document(u["org_id"], j["id"], "cert_pdf", path, "application/pdf", u["id"], meta={"name": name})
+    doc = await svc.add_document(u["org_id"], j["id"], "cert_pdf", path, "application/pdf", u["id"], meta={"name": name, "cert_no": cert_no})
     client = await db.fetchrow("SELECT * FROM clients WHERE id=$1", j["bill_to_client_id"] or j["client_id"])
     to_email = client and client.get("email")
-    cert = await db.fetchrow(
-        """INSERT INTO certificates (org_id, job_id, name, document_id, emailed_to, emailed_at, status)
-           VALUES ($1,$2,$3,$4,$5, CASE WHEN $5::text IS NULL THEN NULL ELSE now() END, $6) RETURNING id, status""",
-        u["org_id"], j["id"], name, doc["id"], to_email, "queued" if to_email else "stored")
+    try:
+        cert = await db.fetchrow(
+            """INSERT INTO certificates (org_id, job_id, name, document_id, emailed_to, emailed_at, status, cert_no)
+               VALUES ($1,$2,$3,$4,$5, CASE WHEN $5::text IS NULL THEN NULL ELSE now() END, $6, $7) RETURNING id, status""",
+            u["org_id"], j["id"], name, doc["id"], to_email, "queued" if to_email else "stored", cert_no)
+    except asyncpg.UniqueViolationError:
+        raise HTTPException(409, "Certificate number already used in this yard")
     if to_email:
         await svc.queue_mail(u["org_id"], to_email, f"Certificate — {name} — {j['code']}", "certificate", cert["id"])
     return {"certificate_id": str(cert["id"]), "document_id": str(doc["id"]),
-            "status": cert["status"], "emailed_to": to_email}
+            "status": cert["status"], "emailed_to": to_email, "cert_no": cert_no}
 
 @r.post("/field/jobs/{jid}/certs")
-async def upload_cert(jid: str, file: UploadFile = File(...), name: str = Form(...), u=Depends(crew)):
+async def upload_cert(jid: str, file: UploadFile = File(...), name: str = Form(...), cert_no: str = Form(...), u=Depends(crew)):
     j = await _job_for(u, jid)
     if not (file.content_type or "").endswith("pdf"):
         raise HTTPException(400, "Certificate must be a PDF")
     data = await file.read()
-    return await _store_cert(u, j, name, data)
+    return await _store_cert(u, j, name, data, cert_no)
 
 @r.post("/field/jobs/{jid}/certs/form")
 async def cert_from_form(jid: str, body: dict = Body(...), u=Depends(crew)):
     j = await _job_for(u, jid)
     name = (body.get("name") or "").strip() or "Electrical Safety Certificate"
-    if not body.get("cert_no"):
-        raise HTTPException(400, "cert_no is required")
+    cert_no = svc.allocate_cert_no(u["org_id"], body.get("cert_no"))
     org = await svc.get_org(u["org_id"])
     client = await db.fetchrow("SELECT * FROM clients WHERE id=$1", j["client_id"])
     site = await db.fetchrow("SELECT * FROM sites WHERE id=$1", j["site_id"]) if j["site_id"] else None
     form = {k: body.get(k) for k in ("name", "cert_no", "description", "visual", "earth_continuity", "insulation_mohm", "rcd_ms", "polarity", "result")}
     form["name"] = name
+    form["cert_no"] = cert_no
     data = svc.render_pdf(u["org_id"], pdfs.cert_pdf, org, j, client, site, form, u["name"])
-    res = await _store_cert(u, j, f"{name} {body['cert_no']}", data)
+    res = await _store_cert(u, j, f"{name} {cert_no}", data, cert_no)
     return res
 
 @r.get("/field/jobs/{jid}/pack.pdf")

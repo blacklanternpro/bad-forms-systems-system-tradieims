@@ -149,7 +149,7 @@ const CertSheet = ({ jobId, d, onClose }) => {
   const [tab, setTab] = useState("form");
   const [name, setName] = useState("Electrical Safety Certificate");
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ cert_no: "", description: "", visual: "pass", earth_continuity: "pass", insulation_mohm: "", rcd_ms: "", polarity: "pass", result: "pass" });
+  const [form, setForm] = useState({ cert_no: d.next_cert_no || "", description: "", visual: "pass", earth_continuity: "pass", insulation_mohm: "", rcd_ms: "", polarity: "pass", result: "pass" });
   const fileRef = useRef();
 
   const done = (data) => {
@@ -171,11 +171,13 @@ const CertSheet = ({ jobId, d, onClose }) => {
     const f = e.target.files?.[0];
     if (!f) return;
     if (!name.trim()) { toast.error("NAME THE CERT FIRST"); return; }
+    if (!form.cert_no.trim()) { toast.error("CERT NO REQUIRED"); return; }
     setBusy(true);
     try {
       const fd = new FormData();
       fd.append("file", f);
       fd.append("name", name);
+      fd.append("cert_no", form.cert_no.trim());
       const { data } = await fx.post(`/field/jobs/${jobId}/certs`, fd);
       done(data);
     } catch (e2) { toast.error(errMsg(e2)); }
@@ -199,7 +201,7 @@ const CertSheet = ({ jobId, d, onClose }) => {
       {tab === "form" ? (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <div><div className="bf-label mb-1">CERT NO</div><input className="bf-input" placeholder="ES-2210" data-testid="cert-no-input" value={form.cert_no} onChange={(e) => setForm({ ...form, cert_no: e.target.value })} /></div>
+            <div><div className="bf-label mb-1">CERT NO</div><input className="bf-input" placeholder="ES-0001" data-testid="cert-no-input" value={form.cert_no} onChange={(e) => setForm({ ...form, cert_no: e.target.value })} /></div>
             <div><div className="bf-label mb-1">RESULT</div><PF k="result" /></div>
           </div>
           <div><div className="bf-label mb-1">DESCRIPTION OF WORK</div><input className="bf-input" placeholder="e.g. New circuit + RCD, shed lighting" data-testid="cert-desc-input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
@@ -216,6 +218,7 @@ const CertSheet = ({ jobId, d, onClose }) => {
         </div>
       ) : (
         <>
+          <div className="mb-3"><div className="bf-label mb-1">CERT NO</div><input className="bf-input" placeholder="ES-0001" data-testid="cert-no-input" value={form.cert_no} onChange={(e) => setForm({ ...form, cert_no: e.target.value })} /></div>
           <input ref={fileRef} type="file" accept="application/pdf" style={{ display: "none" }} onChange={onFile} data-testid="cert-file-input" />
           <button className="bf-btn bf-btn-amber w-full py-4" data-testid="cert-upload-btn" disabled={busy || !name.trim()} onClick={() => fileRef.current.click()}>
             {busy ? "UPLOADING…" : "ATTACH PDF + QUEUE TO CLIENT"}

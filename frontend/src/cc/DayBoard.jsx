@@ -1,16 +1,35 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { cc, errMsg, API } from "@/lib/api";
 import { toast } from "sonner";
 
 const todayIso = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Australia/Perth" })).toISOString().slice(0, 10);
 
 export default function DayBoard() {
+  const nav = useNavigate();
   const [date, setDate] = useState(todayIso());
   const [board, setBoard] = useState({ jobs: [] });
   const [dir, setDir] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [nudge, setNudge] = useState({ recalls: [], quotes: [] });
   const [form, setForm] = useState({ job_id: "", user_id: "", window_start: "07:00", window_end: "15:00" });
   const isOwner = (JSON.parse(localStorage.getItem("bf_user") || "{}").role) === "owner";
+  const isToday = date === todayIso();
+
+  const load = useCallback(async () => {
+    const { data } = await cc.get(`/dayboard?date_str=${date}`);
+    setBoard(data);
+  }, [date]);
+
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    cc.get("/directory").then((r) => setDir(r.data));
+    cc.get("/jobs").then((r) => setJobs(r.data));
+  }, []);
+  useEffect(() => {
+    if (!isToday) { setNudge({ recalls: [], quotes: [] }); return; }
+    cc.get("/nudge").then((r) => setNudge(r.data)).catch(() => setNudge({ recalls: [], quotes: [] }));
+  }, [isToday]);
 
   const load = useCallback(async () => {
     const { data } = await cc.get(`/dayboard?date_str=${date}`);
@@ -62,6 +81,44 @@ export default function DayBoard() {
           {isOwner && <button className="bf-btn bf-btn-amber" data-testid="copy-previous-day-btn" onClick={copyPrev}>COPY PREVIOUS DAY</button>}
         </div>
       </div>
+
+      {isToday && (nudge.recalls.length > 0 || nudge.quotes.length > 0) && (
+        <div className="bf-card bf-frame p-6 mb-8" data-testid="morning-nudge">
+          <div className="bf-label mb-3">THIS MORNING</div>
+          {nudge.recalls.length > 0 && (
+            <div className="mb-4">
+              <div className="bf-label mb-2">RECALLS THIS WEEK</div>
+              <div className="space-y-2" data-testid="nudge-recalls">
+                {nudge.recalls.map((j) => (
+                  <button key={j.id} type="button" className="bf-row w-full text-left p-3 flex items-center gap-4" data-testid={`nudge-recall-${j.code}`}
+                    onClick={() => nav(`/cc/jobs/${j.id}`)} style={{ background: "none", border: "1px solid #262f3d", cursor: "pointer" }}>
+                    <span className="mono text-sm" style={{ color: "#f59e0b", width: 80 }}>{j.code}</span>
+                    <span style={{ flex: 1, color: "#e7ecf3" }}>{j.title}</span>
+                    <span className="mono text-xs" style={{ color: "#94a3b8" }}>{j.client_name} · {j.recall_on}</span>
+                    {j.overdue && <span className="bf-chip chip-red">OVERDUE</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {nudge.quotes.length > 0 && (
+            <div>
+              <div className="bf-label mb-2">QUOTES TO CHASE</div>
+              <div className="space-y-2" data-testid="nudge-quotes">
+                {nudge.quotes.map((q) => (
+                  <button key={q.id} type="button" className="bf-row w-full text-left p-3 flex items-center gap-4" data-testid={`nudge-quote-${q.code}`}
+                    onClick={() => nav("/cc/quotes")} style={{ background: "none", border: "1px solid #262f3d", cursor: "pointer" }}>
+                    <span className="mono text-sm" style={{ color: "#f59e0b", width: 70 }}>{q.code}</span>
+                    <span style={{ flex: 1, color: "#e7ecf3" }}>{q.title}</span>
+                    <span className="mono text-xs" style={{ color: "#94a3b8" }}>{q.client_name} · valid {q.valid_until}</span>
+                    <span className={`bf-chip ${q.overdue ? "chip-red" : "chip-amber"}`}>{q.overdue ? "OVERDUE" : "FOLLOW UP"}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {isOwner && (
         <div className="bf-card p-5 mb-8 flex gap-3 items-end" data-testid="assign-form">

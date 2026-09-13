@@ -112,7 +112,7 @@ async def seed_org(S):
     j1 = await mk_job("JOB-001", t1, 0, 0, "quoted", "in_progress", 850000, 0, po="PO-4471")
     j2 = await mk_job("JOB-002", t2, 0, 1, "tm", "in_progress")
     j3 = await mk_job("JOB-003", t3, 0, 1, "quoted", "scheduled", 264000, 0, recall=today - timedelta(days=3))
-    j4 = await mk_job("JOB-004", t4, 1, 2, "tm", "scheduled")
+    j4 = await mk_job("JOB-004", t4, 1, 2, "tm", "scheduled", recall=today + timedelta(days=2))
 
     for job, u, ws, we in [(j1, crew[0], "07:00", "11:00"), (j1, crew[2], "07:00", "11:00"),
                            (j2, crew[1], "07:30", "15:30"), (j4, crew[0], "12:30", "16:30")]:
@@ -162,11 +162,19 @@ async def seed_org(S):
     for i, (d, qy, uc) in enumerate(qlines):
         await db.execute("INSERT INTO quote_lines (org_id, quote_id, description, qty, unit_cents, sort) VALUES ($1,$2,$3,$4,$5,$6)", oid, q1["id"], d, qy, uc, i)
 
+    if is_elec:
+        q_chase = await db.fetchrow(
+            """INSERT INTO quotes (org_id, client_id, site_id, bill_to_client_id, code, title, status, valid_until, deposit_bps)
+               VALUES ($1,$2,$3,$2,'Q-002','Switchboard upgrade — Cowaramup display','sent',$4,0) RETURNING *""",
+            oid, clients[0]["id"], sites[1]["id"], today + timedelta(days=3))
+        for i, (d, qy, uc) in enumerate([("Labour", 1, 180000), ("Materials allowance", 1, 64000)]):
+            await db.execute("INSERT INTO quote_lines (org_id, quote_id, description, qty, unit_cents, sort) VALUES ($1,$2,$3,$4,$5,$6)", oid, q_chase["id"], d, qy, uc, i)
+
     if not is_elec:
         q2 = await db.fetchrow(
             """INSERT INTO quotes (org_id, client_id, site_id, bill_to_client_id, code, title, status, valid_until, deposit_bps)
                VALUES ($1,$2,$3,$2,'Q-002','Shed slab 12x8 — accepted works','sent',$4,5000) RETURNING *""",
-            oid, clients[0]["id"], sites[0]["id"], today + timedelta(days=7), S["deposit_bps"] and 5000)
+            oid, clients[0]["id"], sites[0]["id"], today + timedelta(days=7))
         for i, (d, qy, uc) in enumerate([("Slab prep, mesh and pour", 1, 520000), ("Saw cuts + seal", 1, 46000)]):
             await db.execute("INSERT INTO quote_lines (org_id, quote_id, description, qty, unit_cents, sort) VALUES ($1,$2,$3,$4,$5,$6)", oid, q2["id"], d, qy, uc, i)
         q2 = await db.fetchrow("SELECT * FROM quotes WHERE id=$1", q2["id"])
@@ -180,3 +188,23 @@ async def seed_org(S):
     vo2 = await db.fetchrow(
         "INSERT INTO variations (org_id, job_id, code, title, amount_cents, status) VALUES ($1,$2,'VO-002',$3,28000,'draft') RETURNING *",
         oid, j2["id"], "After-hours callout allowance")
+
+
+DEMO_WIPE_TABLES = (
+    "mail_outbox", "certificates", "sync_outbox", "xero_drafts", "supplier_receipts",
+    "job_extra_lines", "variation_sends", "variations", "signatures", "docket_extractions",
+    "documents", "time_entries", "job_assignments", "job_stages", "quote_sends",
+    "quote_lines", "quotes", "jobs", "assets", "sites", "clients", "users",
+)
+
+
+async def reset_demo_yards():
+    async with db.pool.acquire() as c:
+        async with c.transaction():
+            ids = [r["id"] for r in await c.fetch("SELECT id FROM organisations WHERE is_demo")]
+            if ids:
+                for table in DEMO_WIPE_TABLES:
+                    await c.execute(f"DELETE FROM {table} WHERE org_id = ANY($1::uuid[])", ids)
+                await c.execute("DELETE FROM organisations WHERE id = ANY($1::uuid[])", ids)
+    await seed_org(ELEC)
+    await seed_org(CONC)

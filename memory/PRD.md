@@ -28,6 +28,12 @@ GST = floor(cents*qty*0.10+0.5). Cost = time×labour + receipts (no markup). Quo
 - Public: /q accept (name + optional canvas, creates job + deposit draft pending_push, 409 on re-accept, decline), /s sign (first-wins, 409 on second path, token revocation on canvas sign), letterhead PDFs (reportlab: trading name, ABN, "not an invoice"), signed-copy emails queued to recipient + owner_copy_email.
 - Design: ground #0a0c0f / surface #11141a / card #161b22 / border #262f3d / amber #f59e0b / steel #94a3b8, Space Grotesk + JetBrains Mono, 8px chamfers, amber L-marks, 40px grid. No Inter/purple/shadcn-default chrome.
 
+## Added 2026-09 (owner morning ops)
+- Yard clone (demo only): owner RESET DEMO YARDS on the synthetic banner wipes both SW Electrical and SW Concrete and reseeds a clean AWST morning; returns a fresh JWT. Bookkeeper/crew 403. Does not replace P2 dump/restore for real yards.
+- Recall reminders: GET /api/nudge lists this-week + overdue open recalls; Day Board morning card (today AWST only); Jobs THIS WEEK filter; Job Detail recall_on editor.
+- Cert numbering: certificates.cert_no unique per org; Field CERT sheet prefills ES-0001 (settings.trades.cert_prefix); duplicate 409; required on fill-form and attach-PDF.
+- Quote follow-ups: sent quotes with valid_until within 7 days (incl. overdue) flagged follow_up; Quotes FOLLOW UP filter; Day Board QUOTES TO CHASE. Status is not auto-expired.
+
 ## Backlog / not this run (per spec appendix)
 ### Added 2026-06 (feature pass 2, verified via API tests + UI screenshots)
 - Certificates: Field CERT sheet → POST /api/field/jobs/{id}/certs (PDF only, 400 otherwise) → certificates row + cert_pdf document; auto-queues mail to bill-to email (status queued, mail_outbox kind=certificate) or stored if no email; listed on job pack PDF.
@@ -41,6 +47,6 @@ GST = floor(cents*qty*0.10+0.5). Cost = time×labour + receipts (no markup). Quo
  P2: DocuSign, negative VOs, SMS, van stock, cert templates, retention, MYOB live, civil/earthworks IMS (separate prompt), yard clone dump/restore. Never: payroll/BAS/bank feeds, wet-hire/SoR/Gantt in trades IMS.
 
 ## Key files
-backend: server.py, db.py, auth.py, money.py, svc.py, pdfs.py, extractor.py, xerostub.py, storage.py, seed.py, routes_cc.py, routes_fp.py, migrations/001_init.sql
+backend: server.py, db.py, auth.py, money.py, svc.py, pdfs.py, extractor.py, xerostub.py, storage.py, seed.py, routes_cc.py, routes_fp.py, migrations/{001_init,002_cert_no}.sql
 frontend: src/App.js, index.css (design tokens), lib/{api,outbox}.js, components/SigPad.jsx, cc/{Layout,DayBoard,Quotes,Jobs,JobDetail,Inbox,Ledger,Directory,Modules}.jsx, field/{Field,FieldJob}.jsx, pages/{Login,PublicQuote,PublicSign}.jsx
 ops: /app/scripts/ensure_pg.sh, /app/tests/smoke.py, /app/memory/test_credentials.md

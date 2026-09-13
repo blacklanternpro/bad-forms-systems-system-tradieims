@@ -8,12 +8,13 @@ export default function JobDetail() {
   const nav = useNavigate();
   const [d, setD] = useState(null);
   const [po, setPo] = useState("");
+  const [recall, setRecall] = useState("");
   const isOwner = (JSON.parse(localStorage.getItem("bf_user") || "{}").role) === "owner";
   const token = localStorage.getItem("bf_token");
 
   const load = useCallback(async () => {
     const { data } = await cc.get(`/jobs/${id}`);
-    setD(data); setPo(data.job.customer_po || "");
+    setD(data); setPo(data.job.customer_po || ""); setRecall((data.job.recall_on || "").slice(0, 10));
   }, [id]);
   useEffect(() => { load(); }, [load]);
 
@@ -28,6 +29,7 @@ export default function JobDetail() {
     } catch (e) { toast.error(errMsg(e)); }
   };
   const savePo = async () => { await cc.patch(`/jobs/${id}`, { customer_po: po }); toast.success("PO SAVED"); load(); };
+  const saveRecall = async () => { await cc.patch(`/jobs/${id}`, { recall_on: recall || null }); toast.success("RECALL SAVED"); load(); };
   const setStatus = async (s) => { await cc.patch(`/jobs/${id}`, { status: s }); load(); };
 
   return (
@@ -80,6 +82,10 @@ export default function JobDetail() {
           <div className="flex gap-3 items-end mt-6">
             <div style={{ flex: 1 }}><div className="bf-label mb-1">CUSTOMER PO</div><input className="bf-input" data-testid="job-po-input" value={po} onChange={(e) => setPo(e.target.value)} /></div>
             {isOwner && <button className="bf-btn" data-testid="job-po-save-btn" onClick={savePo}>SAVE PO</button>}
+          </div>
+          <div className="flex gap-3 items-end mt-4">
+            <div style={{ flex: 1 }}><div className="bf-label mb-1">RECALL ON</div><input type="date" className="bf-input" data-testid="job-recall-input" value={recall} onChange={(e) => setRecall(e.target.value)} /></div>
+            {isOwner && <button className="bf-btn" data-testid="job-recall-save-btn" onClick={saveRecall}>SAVE RECALL</button>}
           </div>
         </div>
 

@@ -14,6 +14,9 @@ def check(name, cond, extra=""):
 r = requests.post(f"{B}/auth/login", json={"email": "owner.conc@demo.badform.invalid", "password": "DemoOwner!conc"})
 check("conc owner login", r.status_code == 200, jd(r))
 H = {"Authorization": f"Bearer {r.json()['token']}"}
+r = requests.post(f"{B}/demo/reset", headers=H)
+check("demo reset to known morning", r.status_code == 200 and r.json().get("token"), jd(r))
+H = {"Authorization": f"Bearer {r.json()['token']}"}
 
 # quotes: draft Q-001 (deposit 5000) send -> public accept -> deposit draft pending_push
 qs = requests.get(f"{B}/quotes", headers=H).json()
@@ -44,6 +47,13 @@ jobs = requests.get(f"{B}/jobs", headers=HE).json()
 j1 = next(j for j in jobs if j["code"] == "JOB-001")
 j2 = next(j for j in jobs if j["code"] == "JOB-002")
 check("recall_due filter", any(j["recall_due"] for j in jobs), [j["code"] for j in jobs])
+nudge = requests.get(f"{B}/nudge", headers=HE).json()
+check("nudge includes JOB-003", any(j["code"] == "JOB-003" for j in nudge.get("recalls", [])), nudge)
+check("nudge includes Q-002", any(q["code"] == "Q-002" for q in nudge.get("quotes", [])), nudge)
+week = requests.get(f"{B}/jobs?filter=recall_week", headers=HE).json()
+check("recall_week includes JOB-003", any(j["code"] == "JOB-003" for j in week), [j["code"] for j in week])
+fu = requests.get(f"{B}/quotes?filter=follow_up", headers=HE).json()
+check("follow_up includes Q-002", any(q["code"] == "Q-002" and q.get("follow_up") for q in fu), fu)
 
 # margin math JOB-001: quoted 850000 + signed VO 38500, cost = labour (2 crew x 3h) 
 d = requests.get(f"{B}/jobs/{j1['id']}", headers=HE).json()
@@ -100,6 +110,18 @@ today = requests.get(f"{B}/field/today", headers=HF).json()
 check("field today has jobs", len(today["jobs"]) >= 1, today)
 jid = today["jobs"][0]["job_id"]
 
+# cert numbering: prefill sequence, unique per org
+fj = requests.get(f"{B}/field/jobs/{jid}", headers=HF).json()
+check("next_cert_no prefills ES-0001", fj.get("next_cert_no") == "ES-0001", fj.get("next_cert_no"))
+r = requests.post(f"{B}/field/jobs/{jid}/certs/form", json={"name": "Electrical Safety Certificate", "cert_no": "ES-0001", "description": "Smoke cert", "result": "pass"}, headers=HF)
+check("first cert ES-0001 stored", r.status_code == 200 and r.json().get("cert_no") == "ES-0001", jd(r))
+r = requests.post(f"{B}/field/jobs/{jid}/certs/form", json={"name": "Electrical Safety Certificate", "cert_no": "ES-0001", "description": "dup", "result": "pass"}, headers=HF)
+check("duplicate cert_no 409", r.status_code == 409, r.status_code)
+fj2 = requests.get(f"{B}/field/jobs/{jid}", headers=HF).json()
+check("next after ES-0001 is ES-0002", fj2.get("next_cert_no") == "ES-0002", fj2.get("next_cert_no"))
+r = requests.post(f"{B}/field/jobs/{jid}/certs/form", json={"name": "Electrical Safety Certificate", "cert_no": "ES-0002", "description": "second", "result": "pass"}, headers=HF)
+check("second cert ES-0002 stored", r.status_code == 200 and r.json().get("cert_no") == "ES-0002", jd(r))
+
 # capture with fixture-sized image, dedupe via client_id
 from PIL import Image
 buf = io.BytesIO()
@@ -137,6 +159,19 @@ r = requests.post(f"{B}/dayboard/copy-previous", json={"date": "2026-06-10"}, he
 check("bookkeeper cannot schedule", r.status_code == 403, r.status_code)
 r = requests.get(f"{B}/inbox", headers=HB)
 check("bookkeeper can read inbox", r.status_code == 200)
+r = requests.post(f"{B}/demo/reset", headers=HB)
+check("bookkeeper cannot reset yards", r.status_code == 403, r.status_code)
+
+# owner reset again — session reissued, PIN and seed still hold
+r = requests.post(f"{B}/demo/reset", headers=HE)
+check("owner demo reset", r.status_code == 200 and r.json().get("token"), jd(r))
+HE2 = {"Authorization": f"Bearer {r.json()['token']}"}
+r = requests.post(f"{B}/field/sw-electrical-demo/pin", json={"pin": "1234"})
+check("PIN 1234 after reset", r.status_code == 200)
+inbox = requests.get(f"{B}/inbox", headers=HE2).json()
+check("inbox has >=3 needs_verify after reset", len(inbox) >= 3, len(inbox))
+jobs = requests.get(f"{B}/jobs", headers=HE2).json()
+check("recall_due after reset", any(j.get("recall_due") for j in jobs), [j["code"] for j in jobs])
 
 # GST math
 from math import floor
