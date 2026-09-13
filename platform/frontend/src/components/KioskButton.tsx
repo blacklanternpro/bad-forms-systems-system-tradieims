@@ -1,34 +1,38 @@
+import Icon, { type IconName } from "./Icon";
+
 /** Workshop-kiosk control: giant target, two per screen max. */
 export interface KioskButtonProps {
   label: string;
   hint?: string;
   onClick: () => void;
   tone?: "mark" | "quiet";
+  icon?: IconName;
+  disabled?: boolean;
   testId?: string;
 }
 
-export default function KioskButton({ label, hint, onClick, tone = "quiet", testId }: KioskButtonProps) {
+export default function KioskButton({ label, hint, onClick, tone = "quiet", icon, disabled, testId }: KioskButtonProps) {
   const mark = tone === "mark";
   return (
     <button
+      type="button"
       data-testid={testId}
       onClick={onClick}
-      className={mark ? "bf-btn bf-btn--primary" : "bf-btn"}
-      style={{
-        display: "block",
-        width: "100%",
-        minHeight: 120,
-        padding: 20,
-        textAlign: "left",
-        borderWidth: mark ? "2px" : "var(--hair)",
-      }}
+      disabled={disabled}
+      className={`bf-btn bf-kioskbtn${mark ? " bf-btn--primary" : ""}`}
     >
-      <span style={{ display: "block", fontSize: 22, fontWeight: 500, letterSpacing: "-0.02em" }}>{label}</span>
-      {hint && (
-        <span className="bf-mono" style={{ display: "block", marginTop: 6, fontSize: 13, opacity: 0.75 }}>
-          {hint}
+      {icon && (
+        <span className="bf-kioskbtn__icon" aria-hidden="true">
+          <Icon name={icon} size={28} />
         </span>
       )}
+      <span className="bf-kioskbtn__text">
+        <span className="bf-kioskbtn__label">{label}</span>
+        {hint && <span className="bf-kioskbtn__hint">{hint}</span>}
+      </span>
+      <span className="bf-kioskbtn__go" aria-hidden="true">
+        <Icon name="chevron-right" size={24} />
+      </span>
     </button>
   );
 }

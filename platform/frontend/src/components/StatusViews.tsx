@@ -1,37 +1,42 @@
+import Icon, { type IconName } from "./Icon";
+
 /** Loading / empty / error states — every screen uses these, per convention. */
 export interface LoadingViewProps {
   label?: string;
+  /** Number of placeholder rows to sketch under the label. */
+  rows?: number;
 }
-export function LoadingView({ label = "Loading" }: LoadingViewProps) {
+export function LoadingView({ label = "Loading", rows = 0 }: LoadingViewProps) {
   return (
-    <p className="bf-label" data-testid="loading-view" style={{ padding: "40px 0", textAlign: "center" }}>
-      {label}…
-    </p>
+    <div className="bf-state bf-state--loading" data-testid="loading-view" role="status" aria-live="polite">
+      <p className="bf-state__title">{label}…</p>
+      {rows > 0 && (
+        <div className="bf-skeleton" aria-hidden="true">
+          {Array.from({ length: rows }, (_, i) => (
+            <span key={i} className="bf-skeleton__row" />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
 export interface EmptyViewProps {
   title: string;
   hint?: string;
+  icon?: IconName;
   testId?: string;
 }
-export function EmptyView({ title, hint, testId }: EmptyViewProps) {
+export function EmptyView({ title, hint, icon, testId }: EmptyViewProps) {
   return (
-    <div
-      data-testid={testId ?? "empty-view"}
-      style={{
-        padding: "40px 20px",
-        textAlign: "center",
-        border: "var(--hair) dashed var(--rule-strong)",
-        borderRadius: "var(--radius)",
-      }}
-    >
-      <p className="bf-h2" style={{ fontSize: 16, margin: 0 }}>
-        {title}
-      </p>
-      {hint && (
-        <p style={{ color: "var(--ink-mute)", fontSize: 13, margin: "8px 0 0" }}>{hint}</p>
+    <div data-testid={testId ?? "empty-view"} className="bf-state bf-state--empty">
+      {icon && (
+        <span className="bf-state__icon" aria-hidden="true">
+          <Icon name={icon} size={24} />
+        </span>
       )}
+      <p className="bf-state__title">{title}</p>
+      {hint && <p className="bf-state__hint">{hint}</p>}
     </div>
   );
 }
@@ -42,18 +47,10 @@ export interface ErrorViewProps {
 }
 export function ErrorView({ message, onRetry }: ErrorViewProps) {
   return (
-    <div
-      data-testid="error-view"
-      style={{
-        padding: "24px 20px",
-        textAlign: "center",
-        border: "var(--hair) solid var(--stamp-bad)",
-        borderRadius: "var(--radius)",
-      }}
-    >
-      <p style={{ color: "var(--stamp-bad)", fontFamily: "var(--font-ui)", fontSize: 14, margin: 0 }}>{message}</p>
+    <div data-testid="error-view" className="bf-state bf-state--error" role="alert">
+      <p className="bf-state__title">{message}</p>
       {onRetry && (
-        <button data-testid="error-retry" onClick={onRetry} className="bf-btn" style={{ marginTop: 12 }}>
+        <button data-testid="error-retry" onClick={onRetry} className="bf-btn bf-btn--sm bf-state__retry">
           Retry
         </button>
       )}

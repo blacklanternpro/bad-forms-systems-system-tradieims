@@ -220,6 +220,12 @@ html {
   border-radius: var(--r-sm);
 }
 
+.bf-btn--lg {
+  min-height: max(var(--tap-min), 52px);
+  padding: 0 18px;
+  font-size: 16px;
+}
+
 .bf-btn--primary {
   background: var(--mark);
   color: var(--mark-ink);
@@ -363,8 +369,186 @@ select.bf-compact {
   border: var(--hair) solid var(--rule);
   border-bottom: 0;
   border-radius: 12px 12px 0 0;
-  padding: var(--pad);
+  padding: 8px var(--pad) 0;
   padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom));
+}
+
+.bf-sheet__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.bf-sheet__grip {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--rule-strong);
+  margin-bottom: 6px;
+}
+
+.bf-sheet__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.bf-sheet__close {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin-right: -8px;
+  border: 0;
+  border-radius: var(--r);
+  background: transparent;
+  color: var(--ink-mute);
+}
+
+.bf-sheet__close:hover {
+  background: var(--paper-sink);
+  color: var(--ink);
+}
+
+/* Screen states: one quiet panel language for loading, empty, and error. */
+.bf-state {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 28px 20px;
+  text-align: center;
+  border-radius: var(--r);
+  background: var(--paper-sink);
+}
+
+.bf-state__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: var(--paper-raise);
+  color: var(--ink-mute);
+  box-shadow: inset 0 0 0 var(--hair) var(--rule);
+}
+
+.bf-state__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.bf-state__hint {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-mute);
+}
+
+.bf-state--loading {
+  background: transparent;
+  padding: 20px 0;
+}
+
+.bf-state--loading .bf-state__title {
+  color: var(--ink-mute);
+  font-weight: 500;
+}
+
+.bf-skeleton {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.bf-skeleton__row {
+  display: block;
+  height: 56px;
+  border-radius: var(--r);
+  background: var(--paper-sink);
+}
+
+.bf-state--error {
+  background: color-mix(in srgb, var(--bad) 6%, transparent);
+}
+
+.bf-state--error .bf-state__title {
+  color: var(--bad);
+}
+
+.bf-state__retry {
+  margin-top: 6px;
+}
+
+/* Kiosk control: giant target, icon, label and hint, chevron. */
+.bf-kioskbtn {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 96px;
+  padding: 18px 16px 18px 20px;
+  text-align: left;
+}
+
+.bf-kioskbtn__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--paper-sink);
+  color: var(--ink);
+}
+
+.bf-btn--primary .bf-kioskbtn__icon {
+  background: color-mix(in srgb, var(--mark-ink) 14%, transparent);
+  color: var(--mark-ink);
+}
+
+.bf-kioskbtn__text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bf-kioskbtn__label {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.bf-kioskbtn__hint {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bf-btn--primary .bf-kioskbtn__hint {
+  color: color-mix(in srgb, var(--mark-ink) 72%, transparent);
+}
+
+.bf-kioskbtn__go {
+  display: grid;
+  color: var(--ink-faint);
+}
+
+.bf-btn--primary .bf-kioskbtn__go {
+  color: var(--mark-ink);
 }
 
 .bf-mast {

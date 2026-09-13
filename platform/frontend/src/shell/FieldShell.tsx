@@ -1,11 +1,23 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { getSession, setSession } from "../api";
-import { GloveToggle, applyBrand } from "../components/Chrome";
+import { applyBrand } from "../components/Chrome";
+import Icon from "../components/Icon";
+import Stamp from "../components/Stamp";
 import { flush, pending } from "../lib/outbox";
+import "../screens/field/Field.css";
 
 export interface FieldShellProps {
   children: ReactNode;
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 /** Field app chrome: one-thumb layout, bottom bar, glove mode always at hand.
@@ -14,6 +26,8 @@ export default function FieldShell({ children }: FieldShellProps) {
   const nav = useNavigate();
   const s = getSession();
   const [queued, setQueued] = useState(pending().length);
+  const [glove, setGlove] = useState(localStorage.getItem("bf_glove") === "on");
+
   useEffect(() => {
     applyBrand(getSession()?.org.brand?.tokens);
     const tryFlush = () => void flush().then(() => setQueued(pending().length));
@@ -21,57 +35,53 @@ export default function FieldShell({ children }: FieldShellProps) {
     window.addEventListener("online", tryFlush);
     return () => window.removeEventListener("online", tryFlush);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-glove", glove ? "on" : "off");
+    localStorage.setItem("bf_glove", glove ? "on" : "off");
+  }, [glove]);
+
   if (!s) return null;
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <header className="bf-mast">
-        <span className="bf-wordmark" style={{ fontSize: 14 }}>
-          {s.org.name}
-        </span>
-        {queued > 0 && (
-          <span className="bf-label" data-testid="outbox-count" style={{ color: "var(--stamp-warn)" }}>
-            Outbox {queued}
+    <div className="fd">
+      <header className="fd-mast">
+        <span className="bf-wordmark fd-mast__word">{s.org.name}</span>
+        <Stamp label="Field" tone="mute" />
+        <span className="fd-mast__tools">
+          {queued > 0 && <Stamp label={`Outbox ${queued}`} tone="warn" testId="outbox-count" />}
+          <span className="bf-avatar" title={s.user.name} aria-label={`Signed in as ${s.user.name}`} role="img">
+            {initials(s.user.name)}
           </span>
-        )}
-        <span className="bf-mono" style={{ fontSize: 12, color: "var(--ink-mute)", marginLeft: "auto" }}>
-          {s.user.name}
         </span>
       </header>
-      <main style={{ flex: 1, padding: "16px 16px 90px", maxWidth: 560, width: "100%", margin: "0 auto" }}>{children}</main>
-      <nav
-        aria-label="Field"
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          display: "flex",
-          gap: 8,
-          padding: "10px 12px calc(10px + env(safe-area-inset-bottom))",
-          background: "var(--paper-raise)",
-          borderTop: "var(--hair) solid var(--rule)",
-        }}
-      >
-        <NavLink
-          to="/field"
-          end
-          className="bf-chip"
-          style={{ flex: 1, textAlign: "center", display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}
-        >
-          Today
+      <main className="fd-main">{children}</main>
+      <nav aria-label="Field" className="fd-bar">
+        <NavLink to="/field" end className="fd-bar__item">
+          <Icon name="calendar" size={22} />
+          <span>Today</span>
         </NavLink>
-        <GloveToggle />
         <button
+          type="button"
+          data-testid="glove-toggle"
+          className="fd-bar__item"
+          aria-pressed={glove}
+          onClick={() => setGlove(!glove)}
+        >
+          <Icon name="glove" size={22} />
+          <span>Glove {glove ? "on" : "off"}</span>
+        </button>
+        <button
+          type="button"
           data-testid="field-logout"
-          className="bf-quiet-btn"
+          className="fd-bar__item"
           onClick={() => {
             setSession(null);
             nav("/login");
           }}
-          style={{ flex: 1 }}
         >
-          Sign out
+          <Icon name="sign-out" size={22} />
+          <span>Sign out</span>
         </button>
       </nav>
     </div>

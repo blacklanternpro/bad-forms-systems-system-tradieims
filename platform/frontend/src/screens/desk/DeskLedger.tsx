@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { money, type Board, type ChaseList, type Nudge } from "../../api";
 import Icon, { type IconName } from "../../components/Icon";
 import Stamp, { type StampTone } from "../../components/Stamp";
+import { daysBetween, longDate, shortDate } from "../../lib/dates";
 import "./Desk.css";
 
 /** What a finished inline draft looks like once the API has answered. */
@@ -35,30 +36,6 @@ interface TriageItem {
   affordance: { kind: "chevron" } | { kind: "stamp"; label: string; tone: StampTone };
   to?: string;
   testId?: string;
-}
-
-const DAY_MS = 86_400_000;
-
-function parseISODate(iso: string): Date {
-  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
-  return new Date(y, (m ?? 1) - 1, d ?? 1);
-}
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-function longDate(iso: string): string {
-  const d = parseISODate(iso);
-  return `${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function shortDate(iso: string): string {
-  const d = parseISODate(iso);
-  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
-}
-
-function daysBetween(fromIso: string, toIso: string): number {
-  return Math.round((parseISODate(toIso).getTime() - parseISODate(fromIso).getTime()) / DAY_MS);
 }
 
 function daysLabel(n: number, when: "until" | "ago"): string {
