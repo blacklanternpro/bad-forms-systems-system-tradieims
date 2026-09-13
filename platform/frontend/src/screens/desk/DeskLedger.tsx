@@ -67,6 +67,13 @@ function daysLabel(n: number, when: "until" | "ago"): string {
   return when === "until" ? `${n} ${unit}` : `Due ${n} ${unit} ago`;
 }
 
+/** Overdue rows: how late the invoice is, or its due date when the ledger flags it early. */
+function dueLabel(dueOn: string | null, today: string): string | null {
+  if (!dueOn) return null;
+  const late = daysBetween(dueOn, today);
+  return late < 0 ? `Due ${shortDate(dueOn)}` : daysLabel(late, "ago");
+}
+
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   const first = parts[0]?.[0] ?? "";
@@ -227,7 +234,7 @@ export default function DeskLedger({
                 aria-valuemax={100}
                 aria-valuenow={share}
               >
-                <div className="desk-meter__fill" style={{ width: `${share}%` }} />
+                <div className="desk-meter__fill" style={{ transform: `scaleX(${share / 100})` }} />
               </div>
               <p className="desk-panel__note">
                 {plural(chase.uninvoiced.length, "job", "jobs")} · <span className="bf-mono">{money(uninvoicedCents)}</span> uninvoiced
@@ -311,10 +318,7 @@ export default function DeskLedger({
                     ) : (
                       <ul className="desk-rows">
                         {chase.overdue.map((i) => {
-                          const overdueBy = i.due_on ? daysBetween(i.due_on, nudge.date) : null;
-                          const sub = [i.client_name ?? i.job_code, overdueBy === null ? null : daysLabel(Math.max(overdueBy, 0), "ago")]
-                            .filter(Boolean)
-                            .join(" · ");
+                          const sub = [i.client_name ?? i.job_code, dueLabel(i.due_on, nudge.date)].filter(Boolean).join(" · ");
                           const open = i.job_id ? () => nav(`/jobs/${i.job_id}`) : undefined;
                           return (
                             <li
