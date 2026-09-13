@@ -1,0 +1,2041 @@
+{
+  "tool": "comp-spec",
+  "version": 1,
+  "createdAt": "2026-09-13T00:12:09.556Z",
+  "comp": ".impeccable/mocks/decision/desk-neutral-foundation.png",
+  "warnings": [
+    "region masthead: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region masthead: \"container\": true set in the regions file (the region-size refusal is overridden: one undivided element)",
+    "region wordmark: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region desk-status: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region mast-tools: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region page-title: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region triage-heading: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region money-heading: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region dispatch-heading: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region divider-1: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region divider-2: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region triage-review: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region triage-recall: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region triage-licence: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region triage-link: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region money-card: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region money-card: \"container\": true set in the regions file (the region-size refusal is overridden: one undivided element)",
+    "region total-label: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region total-amount: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region progress-rule: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region count-line: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region uninvoiced-heading: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region uninvoiced-count: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region uninvoiced-rows: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region overdue-heading: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region overdue-count: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region overdue-rows: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region money-link: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region dispatch-card: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region dispatch-card: \"container\": true set in the regions file (the region-size refusal is overridden: one undivided element)",
+    "region dispatch-title: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region dispatch-date: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region crew-rows: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region print-button: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)",
+    "region dispatch-link: \"codeDrawn\": true set in the regions file (the painted-material refusal is overridden: code draws this region)"
+  ],
+  "uncoveredInkCells": [
+    "E1"
+  ],
+  "compSize": {
+    "width": 1280,
+    "height": 720
+  },
+  "aspect": 1.7778,
+  "orientation": "landscape",
+  "palette": [
+    {
+      "hex": "#f8f8f7",
+      "coverage": 0.9623
+    },
+    {
+      "hex": "#171717",
+      "coverage": 0.0143
+    },
+    {
+      "hex": "#747474",
+      "coverage": 0.0088
+    },
+    {
+      "hex": "#35363c",
+      "coverage": 0.0074
+    },
+    {
+      "hex": "#c3c3c2",
+      "coverage": 0.0071
+    }
+  ],
+  "bands": [
+    {
+      "y": 0.0556,
+      "strength": 0.3226
+    },
+    {
+      "y": 0.125,
+      "strength": 0.3183
+    },
+    {
+      "y": 0.1528,
+      "strength": 0.2613
+    },
+    {
+      "y": 0.3194,
+      "strength": 0.251
+    },
+    {
+      "y": 0.5278,
+      "strength": 0.2066
+    },
+    {
+      "y": 0.5556,
+      "strength": 0.3653
+    }
+  ],
+  "regions": [
+    {
+      "id": "masthead",
+      "kind": "chrome",
+      "note": "top bar: white strip on the neutral ground closed by a hairline rule; holds the wordmark, status pill and tools",
+      "grid": "A0:J0",
+      "codeDrawn": true,
+      "container": true,
+      "snap": false,
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.1028
+      },
+      "px": {
+        "x": 0,
+        "y": 0,
+        "w": 1280,
+        "h": 74
+      },
+      "aspect": 17.2973,
+      "palette": [
+        {
+          "hex": "#f6f6f6",
+          "coverage": 0.9668
+        },
+        {
+          "hex": "#0f0f0f",
+          "coverage": 0.0143
+        },
+        {
+          "hex": "#c6c2c5",
+          "coverage": 0.0113
+        },
+        {
+          "hex": "#818181",
+          "coverage": 0.0048
+        },
+        {
+          "hex": "#494949",
+          "coverage": 0.0027
+        }
+      ],
+      "detail": {
+        "energy": 14.648
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "wordmark",
+      "kind": "text",
+      "note": "typeset wordmark BAD FORM Systems, medium weight sans (the small glyph left of it is a defect: wordmark only)",
+      "grid": "A0:B0",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.0164,
+        "y": 0.0194,
+        "w": 0.1743,
+        "h": 0.0555
+      },
+      "px": {
+        "x": 21,
+        "y": 14,
+        "w": 223,
+        "h": 40
+      },
+      "aspect": 5.575,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.8076
+        },
+        {
+          "hex": "#0d0e0e",
+          "coverage": 0.1048
+        },
+        {
+          "hex": "#505050",
+          "coverage": 0.041
+        },
+        {
+          "hex": "#909090",
+          "coverage": 0.0295
+        },
+        {
+          "hex": "#c6c6c5",
+          "coverage": 0.0171
+        }
+      ],
+      "detail": {
+        "energy": 48.5912
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 15,
+          "capHeightPx": 13.7,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.7296,
+          "advTall": 0.7296,
+          "advX": 0.6019,
+          "gap": 0.1094,
+          "xRatio": 0.6816,
+          "stemW": 0.185,
+          "contrast": 1.1009,
+          "serif": 0.5929,
+          "densTall": 0.5308,
+          "densX": 0.6211,
+          "weight": 0.5308
+        },
+        "widthClass": "normal",
+        "weightClass": "medium"
+      }
+    },
+    {
+      "id": "desk-status",
+      "kind": "control",
+      "note": "outlined pill 'Desk · busy', hairline border, muted text",
+      "grid": "C0:D0",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.2196,
+        "y": 0.0208,
+        "w": 0.0907,
+        "h": 0.0528
+      },
+      "px": {
+        "x": 281,
+        "y": 15,
+        "w": 116,
+        "h": 38
+      },
+      "aspect": 3.0526,
+      "palette": [
+        {
+          "hex": "#f4f4f4",
+          "coverage": 0.9152
+        },
+        {
+          "hex": "#c1bfbd",
+          "coverage": 0.0473
+        },
+        {
+          "hex": "#4d4d4d",
+          "coverage": 0.0197
+        },
+        {
+          "hex": "#181818",
+          "coverage": 0.0099
+        },
+        {
+          "hex": "#848484",
+          "coverage": 0.0079
+        }
+      ],
+      "detail": {
+        "energy": 23.1481
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "mast-tools",
+      "kind": "chrome",
+      "note": "search icon, ⌘K shortcut pill, bell icon, initials avatar 'OP' — small line icons and hairline pills",
+      "grid": "H0:J0",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.7899,
+        "y": 0.0152,
+        "w": 0.1938,
+        "h": 0.0639
+      },
+      "px": {
+        "x": 1011,
+        "y": 11,
+        "w": 248,
+        "h": 46
+      },
+      "aspect": 5.3913,
+      "palette": [
+        {
+          "hex": "#f6f6f6",
+          "coverage": 0.9562
+        },
+        {
+          "hex": "#a0a0a0",
+          "coverage": 0.0159
+        },
+        {
+          "hex": "#131313",
+          "coverage": 0.0128
+        },
+        {
+          "hex": "#686868",
+          "coverage": 0.0106
+        },
+        {
+          "hex": "#cdcdcb",
+          "coverage": 0.0045
+        }
+      ],
+      "detail": {
+        "energy": 16.6873
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "page-title",
+      "kind": "text",
+      "note": "page title 'The morning ledger — Thursday 12 Sep 2026', single line, medium weight, tight tracking",
+      "grid": "A1:E1",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.018,
+        "y": 0.1083,
+        "w": 0.4134,
+        "h": 0.0583
+      },
+      "px": {
+        "x": 23,
+        "y": 78,
+        "w": 529,
+        "h": 42
+      },
+      "aspect": 12.5952,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.8818
+        },
+        {
+          "hex": "#0c0c0c",
+          "coverage": 0.0509
+        },
+        {
+          "hex": "#383838",
+          "coverage": 0.0333
+        },
+        {
+          "hex": "#b8b8b8",
+          "coverage": 0.0181
+        },
+        {
+          "hex": "#606060",
+          "coverage": 0.016
+        }
+      ],
+      "detail": {
+        "energy": 56.7878
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 34,
+          "capHeightPx": 16.7,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.6286,
+          "advTall": 0.6286,
+          "advX": 0.6136,
+          "gap": 0.1197,
+          "xRatio": 0.71,
+          "stemW": 0.1638,
+          "contrast": 1.08,
+          "serif": 0.6186,
+          "densTall": 0.4952,
+          "densX": 0.5598,
+          "weight": 0.4952
+        },
+        "widthClass": "normal",
+        "weightClass": "medium",
+        "chosen": {
+          "family": "Inter",
+          "weight": 400,
+          "fontSizePx": 23,
+          "source": "index",
+          "fp": {
+            "lines": 1,
+            "glyphs": 34,
+            "capHeightPx": 17,
+            "inkIsDark": true,
+            "allCaps": false,
+            "advance": 0.616,
+            "advTall": 0.6453,
+            "advX": 0.616,
+            "gap": 0.176,
+            "xRatio": 0.7522,
+            "stemW": 0.1497,
+            "contrast": 1.0785,
+            "serif": 0.7889,
+            "densTall": 0.4899,
+            "densX": 0.5297,
+            "weight": 0.4899
+          },
+          "stamp": "b9b9f2594e54"
+        }
+      }
+    },
+    {
+      "id": "triage-heading",
+      "kind": "text",
+      "note": "column heading 'Triage' with a small accent dot at left, tracked small caps label",
+      "grid": "A1:A2",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.018,
+        "y": 0.1791,
+        "w": 0.0688,
+        "h": 0.0333
+      },
+      "px": {
+        "x": 23,
+        "y": 129,
+        "w": 88,
+        "h": 24
+      },
+      "aspect": 3.6667,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.8889
+        },
+        {
+          "hex": "#141414",
+          "coverage": 0.0385
+        },
+        {
+          "hex": "#545454",
+          "coverage": 0.0342
+        },
+        {
+          "hex": "#959595",
+          "coverage": 0.0214
+        },
+        {
+          "hex": "#3818b0",
+          "coverage": 0.0171
+        }
+      ],
+      "detail": {
+        "energy": 17.738
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 7,
+          "capHeightPx": 8.7,
+          "inkIsDark": true,
+          "allCaps": true,
+          "advance": 0.6518,
+          "advTall": 0.6518,
+          "advX": null,
+          "gap": 0.3834,
+          "xRatio": null,
+          "stemW": 0.2218,
+          "contrast": 1.2068,
+          "serif": null,
+          "densTall": 0.6726,
+          "densX": null,
+          "weight": 0.6726
+        },
+        "widthClass": "normal",
+        "weightClass": "black"
+      }
+    },
+    {
+      "id": "money-heading",
+      "kind": "text",
+      "note": "column heading 'Money on the table' with accent dot",
+      "grid": "D1:F2",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3407,
+        "y": 0.1791,
+        "w": 0.1635,
+        "h": 0.0333
+      },
+      "px": {
+        "x": 436,
+        "y": 129,
+        "w": 209,
+        "h": 24
+      },
+      "aspect": 8.7083,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.8927
+        },
+        {
+          "hex": "#1c1c1c",
+          "coverage": 0.0455
+        },
+        {
+          "hex": "#595959",
+          "coverage": 0.0291
+        },
+        {
+          "hex": "#bbbbbb",
+          "coverage": 0.0182
+        },
+        {
+          "hex": "#828282",
+          "coverage": 0.0145
+        }
+      ],
+      "detail": {
+        "energy": 38.3146
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 16,
+          "capHeightPx": 8.7,
+          "inkIsDark": true,
+          "allCaps": true,
+          "advance": 0.7463,
+          "advTall": 0.7463,
+          "advX": null,
+          "gap": 0.3827,
+          "xRatio": null,
+          "stemW": 0.223,
+          "contrast": 1.1848,
+          "serif": 0.3689,
+          "densTall": 0.6399,
+          "densX": null,
+          "weight": 0.6399
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "dispatch-heading",
+      "kind": "text",
+      "note": "column heading 'Dispatch' with accent dot",
+      "grid": "G1:H2",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.6688,
+        "y": 0.1791,
+        "w": 0.0844,
+        "h": 0.0333
+      },
+      "px": {
+        "x": 856,
+        "y": 129,
+        "w": 108,
+        "h": 24
+      },
+      "aspect": 4.5,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.8857
+        },
+        {
+          "hex": "#808080",
+          "coverage": 0.0429
+        },
+        {
+          "hex": "#bebebe",
+          "coverage": 0.0286
+        },
+        {
+          "hex": "#1a1a1a",
+          "coverage": 0.025
+        },
+        {
+          "hex": "#484848",
+          "coverage": 0.0179
+        }
+      ],
+      "detail": {
+        "energy": 22.9094
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 9,
+          "capHeightPx": 8.7,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.7676,
+          "advTall": 0.7676,
+          "advX": null,
+          "gap": 0.3454,
+          "xRatio": 0.8309,
+          "stemW": 0.2081,
+          "contrast": 1.0708,
+          "serif": 0.3246,
+          "densTall": 0.5684,
+          "densX": null,
+          "weight": 0.5684
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "divider-1",
+      "kind": "chrome",
+      "note": "hairline vertical rule between triage and money columns",
+      "grid": "D1:D9",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3219,
+        "y": 0.175,
+        "w": 0.025,
+        "h": 0.775
+      },
+      "px": {
+        "x": 412,
+        "y": 126,
+        "w": 32,
+        "h": 558
+      },
+      "aspect": 0.0573,
+      "palette": [
+        {
+          "hex": "#f7f7f6",
+          "coverage": 1
+        }
+      ],
+      "detail": {
+        "energy": 0.5308
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "divider-2",
+      "kind": "chrome",
+      "note": "hairline vertical rule between money and dispatch columns",
+      "grid": "G1:G9",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.6484,
+        "y": 0.175,
+        "w": 0.025,
+        "h": 0.775
+      },
+      "px": {
+        "x": 830,
+        "y": 126,
+        "w": 32,
+        "h": 558
+      },
+      "aspect": 0.0573,
+      "palette": [
+        {
+          "hex": "#f6f6f6",
+          "coverage": 1
+        }
+      ],
+      "detail": {
+        "energy": 0.5251
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "triage-review",
+      "kind": "control",
+      "note": "white card, hairline border: inbox line icon, title '3 captures waiting review', muted subline 'New photos, notes and voice captures', right chevron",
+      "grid": "A2:D4",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.018,
+        "y": 0.2375,
+        "w": 0.2969,
+        "h": 0.1778
+      },
+      "px": {
+        "x": 23,
+        "y": 171,
+        "w": 380,
+        "h": 128
+      },
+      "aspect": 2.9688,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.962
+        },
+        {
+          "hex": "#c1c1c1",
+          "coverage": 0.0128
+        },
+        {
+          "hex": "#0e0e0e",
+          "coverage": 0.0106
+        },
+        {
+          "hex": "#808080",
+          "coverage": 0.0106
+        },
+        {
+          "hex": "#484848",
+          "coverage": 0.0041
+        }
+      ],
+      "detail": {
+        "energy": 16.7588
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "triage-recall",
+      "kind": "control",
+      "note": "white card: recall line icon, title 'Recall alert', subline 'HVAC-1187 · Warehouse unit 7', outlined accent chip 'RECALL' at right",
+      "grid": "A4:D6",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.018,
+        "y": 0.4319,
+        "w": 0.2969,
+        "h": 0.1778
+      },
+      "px": {
+        "x": 23,
+        "y": 311,
+        "w": 380,
+        "h": 128
+      },
+      "aspect": 2.9688,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.98
+        },
+        {
+          "hex": "#b3b3b3",
+          "coverage": 0.008
+        },
+        {
+          "hex": "#797979",
+          "coverage": 0.0063
+        },
+        {
+          "hex": "#0e0e0e",
+          "coverage": 0.0041
+        },
+        {
+          "hex": "#e1d8f8",
+          "coverage": 0.0017
+        }
+      ],
+      "detail": {
+        "energy": 12.6232
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "triage-licence",
+      "kind": "control",
+      "note": "white card: licence line icon, title 'Licence expiry', subline 'Driver licence · J. Nguyen', outlined accent chip '7 DAYS' at right",
+      "grid": "A6:D7",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.018,
+        "y": 0.6263,
+        "w": 0.2969,
+        "h": 0.1778
+      },
+      "px": {
+        "x": 23,
+        "y": 451,
+        "w": 380,
+        "h": 128
+      },
+      "aspect": 2.9688,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.9833
+        },
+        {
+          "hex": "#b2b2b2",
+          "coverage": 0.0048
+        },
+        {
+          "hex": "#767676",
+          "coverage": 0.0043
+        },
+        {
+          "hex": "#434343",
+          "coverage": 0.0039
+        },
+        {
+          "hex": "#0d0d0d",
+          "coverage": 0.0037
+        }
+      ],
+      "detail": {
+        "energy": 13.3863
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "triage-link",
+      "kind": "text",
+      "note": "accent text link 'View all triage →'",
+      "grid": "A9:B9",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.016,
+        "y": 0.9,
+        "w": 0.1022,
+        "h": 0.0517
+      },
+      "px": {
+        "x": 20,
+        "y": 648,
+        "w": 131,
+        "h": 37
+      },
+      "aspect": 3.5405,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.931
+        },
+        {
+          "hex": "#332678",
+          "coverage": 0.0372
+        },
+        {
+          "hex": "#dbd0f8",
+          "coverage": 0.0177
+        },
+        {
+          "hex": "#bbb2f5",
+          "coverage": 0.0088
+        },
+        {
+          "hex": "#988dcd",
+          "coverage": 0.0053
+        }
+      ],
+      "detail": {
+        "energy": 17.9106
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 14,
+          "capHeightPx": 11,
+          "inkIsDark": true,
+          "allCaps": true,
+          "advance": 0.5745,
+          "advTall": 0.1966,
+          "advX": null,
+          "gap": 0.0907,
+          "xRatio": null,
+          "stemW": 0.1932,
+          "contrast": 1.0566,
+          "serif": 0.276,
+          "densTall": 0.7384,
+          "densX": null,
+          "weight": 0.7384
+        },
+        "widthClass": "compressed",
+        "weightClass": "black"
+      }
+    },
+    {
+      "id": "money-card",
+      "kind": "chrome",
+      "note": "one tall white card with hairline border holding the money column content",
+      "grid": "D2:G9",
+      "codeDrawn": true,
+      "container": true,
+      "snap": false,
+      "box": {
+        "x": 0.3407,
+        "y": 0.2194,
+        "w": 0.3007,
+        "h": 0.6917
+      },
+      "px": {
+        "x": 436,
+        "y": 158,
+        "w": 385,
+        "h": 498
+      },
+      "aspect": 0.7731,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.8875
+        },
+        {
+          "hex": "#222328",
+          "coverage": 0.0545
+        },
+        {
+          "hex": "#c1c1c1",
+          "coverage": 0.0275
+        },
+        {
+          "hex": "#828282",
+          "coverage": 0.0236
+        },
+        {
+          "hex": "#505050",
+          "coverage": 0.0069
+        }
+      ],
+      "detail": {
+        "energy": 29.8518
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "total-label",
+      "kind": "text",
+      "note": "tracked uppercase label 'TOTAL ON THE TABLE', muted",
+      "grid": "D2:E2",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3539,
+        "y": 0.2416,
+        "w": 0.1001,
+        "h": 0.0305
+      },
+      "px": {
+        "x": 453,
+        "y": 174,
+        "w": 128,
+        "h": 22
+      },
+      "aspect": 5.8182,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.8547
+        },
+        {
+          "hex": "#98989b",
+          "coverage": 0.061
+        },
+        {
+          "hex": "#c8c8cb",
+          "coverage": 0.0407
+        },
+        {
+          "hex": "#5d5d5e",
+          "coverage": 0.0407
+        },
+        {
+          "hex": "#787888",
+          "coverage": 0.0029
+        }
+      ],
+      "detail": {
+        "energy": 25.1974
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 14,
+          "capHeightPx": 8.4,
+          "inkIsDark": true,
+          "allCaps": true,
+          "advance": 0.7137,
+          "advTall": 0.7137,
+          "advX": null,
+          "gap": 0.3172,
+          "xRatio": null,
+          "stemW": 0.2424,
+          "contrast": 1.0624,
+          "serif": 0.5215,
+          "densTall": 0.7241,
+          "densX": null,
+          "weight": 0.7241
+        },
+        "widthClass": "normal",
+        "weightClass": "black"
+      }
+    },
+    {
+      "id": "total-amount",
+      "kind": "text",
+      "note": "large amount '$42,850.00', tabular numerals, semibold, ink",
+      "grid": "D2:F3",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3539,
+        "y": 0.268,
+        "w": 0.1782,
+        "h": 0.0805
+      },
+      "px": {
+        "x": 453,
+        "y": 193,
+        "w": 228,
+        "h": 58
+      },
+      "aspect": 3.931,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.79
+        },
+        {
+          "hex": "#161619",
+          "coverage": 0.1396
+        },
+        {
+          "hex": "#b1b1b4",
+          "coverage": 0.0362
+        },
+        {
+          "hex": "#4a4a4c",
+          "coverage": 0.0224
+        },
+        {
+          "hex": "#77777a",
+          "coverage": 0.0118
+        }
+      ],
+      "detail": {
+        "energy": 46.1628
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 8,
+          "capHeightPx": 28.9,
+          "inkIsDark": true,
+          "allCaps": true,
+          "advance": 0.7277,
+          "advTall": 0.7277,
+          "advX": null,
+          "gap": 0.1386,
+          "xRatio": null,
+          "stemW": 0.1803,
+          "contrast": 1.0633,
+          "serif": null,
+          "densTall": 0.5275,
+          "densX": null,
+          "weight": 0.5275
+        },
+        "widthClass": "normal",
+        "weightClass": "medium",
+        "chosen": {
+          "family": "Fustat",
+          "weight": 700,
+          "fontSizePx": 41,
+          "source": "index",
+          "fp": {
+            "lines": 1,
+            "glyphs": 8,
+            "capHeightPx": 28.5,
+            "inkIsDark": true,
+            "allCaps": true,
+            "advance": 0.7368,
+            "advTall": 0.7368,
+            "advX": null,
+            "gap": 0.1053,
+            "xRatio": null,
+            "stemW": 0.1842,
+            "contrast": 1.0405,
+            "serif": null,
+            "densTall": 0.5173,
+            "densX": null,
+            "weight": 0.5173
+          },
+          "stamp": "2c7776af311c"
+        }
+      }
+    },
+    {
+      "id": "progress-rule",
+      "kind": "chrome",
+      "note": "thin progress rule, accent fill on the left fifth, hairline grey remainder",
+      "grid": "D3:G3",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3539,
+        "y": 0.3444,
+        "w": 0.2734,
+        "h": 0.0194
+      },
+      "px": {
+        "x": 453,
+        "y": 248,
+        "w": 350,
+        "h": 14
+      },
+      "aspect": 25,
+      "palette": [
+        {
+          "hex": "#f6f5f6",
+          "coverage": 0.9573
+        },
+        {
+          "hex": "#3818b8",
+          "coverage": 0.0239
+        },
+        {
+          "hex": "#e8d8f8",
+          "coverage": 0.0154
+        },
+        {
+          "hex": "#3018a0",
+          "coverage": 0.0034
+        }
+      ],
+      "detail": {
+        "energy": 20.9191
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "count-line",
+      "kind": "text",
+      "note": "muted small line '12 jobs · $42,850.00 uninvoiced'",
+      "grid": "D3:F3",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3539,
+        "y": 0.3638,
+        "w": 0.1547,
+        "h": 0.0319
+      },
+      "px": {
+        "x": 453,
+        "y": 262,
+        "w": 198,
+        "h": 23
+      },
+      "aspect": 8.6087,
+      "palette": [
+        {
+          "hex": "#f7f7f8",
+          "coverage": 0.8655
+        },
+        {
+          "hex": "#848485",
+          "coverage": 0.0852
+        },
+        {
+          "hex": "#b5b5b7",
+          "coverage": 0.0455
+        },
+        {
+          "hex": "#585860",
+          "coverage": 0.0038
+        }
+      ],
+      "detail": {
+        "energy": 32.6051
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 24,
+          "capHeightPx": 10.1,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.6284,
+          "advTall": 0.6615,
+          "advX": 0.5953,
+          "gap": 0.0661,
+          "xRatio": 0.7139,
+          "stemW": 0.1966,
+          "contrast": 1.0208,
+          "serif": null,
+          "densTall": 0.5519,
+          "densX": 0.5927,
+          "weight": 0.5519
+        },
+        "widthClass": "normal",
+        "weightClass": "medium"
+      }
+    },
+    {
+      "id": "uninvoiced-heading",
+      "kind": "text",
+      "note": "tracked uppercase list heading 'UNINVOICED JOBS'",
+      "grid": "D4:E4",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3539,
+        "y": 0.418,
+        "w": 0.104,
+        "h": 0.0319
+      },
+      "px": {
+        "x": 453,
+        "y": 301,
+        "w": 133,
+        "h": 23
+      },
+      "aspect": 5.7826,
+      "palette": [
+        {
+          "hex": "#f6f6f6",
+          "coverage": 0.8528
+        },
+        {
+          "hex": "#b4b4b4",
+          "coverage": 0.0861
+        },
+        {
+          "hex": "#0e0e0e",
+          "coverage": 0.0222
+        },
+        {
+          "hex": "#3e3e3e",
+          "coverage": 0.0222
+        },
+        {
+          "hex": "#787878",
+          "coverage": 0.0167
+        }
+      ],
+      "detail": {
+        "energy": 41.2222
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 14,
+          "capHeightPx": 8.7,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.7654,
+          "advTall": 0.7654,
+          "advX": null,
+          "gap": 0.2488,
+          "xRatio": 0.8381,
+          "stemW": 0.2282,
+          "contrast": 1.0343,
+          "serif": 0.5285,
+          "densTall": 0.6047,
+          "densX": null,
+          "weight": 0.6047
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "uninvoiced-count",
+      "kind": "text",
+      "note": "right-aligned muted count '4 jobs'",
+      "grid": "F4:G4",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.5867,
+        "y": 0.418,
+        "w": 0.0415,
+        "h": 0.0319
+      },
+      "px": {
+        "x": 751,
+        "y": 301,
+        "w": 53,
+        "h": 23
+      },
+      "aspect": 2.3043,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.8681
+        },
+        {
+          "hex": "#949496",
+          "coverage": 0.0625
+        },
+        {
+          "hex": "#c8c8ca",
+          "coverage": 0.0486
+        },
+        {
+          "hex": "#636363",
+          "coverage": 0.0208
+        }
+      ],
+      "detail": {
+        "energy": 8.2347
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 5,
+          "capHeightPx": 9.8,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.6466,
+          "advTall": 0.6636,
+          "advX": 0.5956,
+          "gap": 0.0681,
+          "xRatio": 0.7123,
+          "stemW": 0.2026,
+          "contrast": 0.9781,
+          "serif": null,
+          "densTall": 0.5488,
+          "densX": 0.6604,
+          "weight": 0.5488
+        },
+        "widthClass": "normal",
+        "weightClass": "medium"
+      }
+    },
+    {
+      "id": "uninvoiced-rows",
+      "kind": "control",
+      "note": "four rows: job code bold with muted subline, right-aligned tabular amount, and a small dark filled 'Draft invoice' button per row, rows separated by hairlines",
+      "grid": "D4:G6",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3539,
+        "y": 0.4486,
+        "w": 0.2814,
+        "h": 0.2361
+      },
+      "px": {
+        "x": 453,
+        "y": 323,
+        "w": 360,
+        "h": 170
+      },
+      "aspect": 2.1176,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.8222
+        },
+        {
+          "hex": "#2b2c34",
+          "coverage": 0.1074
+        },
+        {
+          "hex": "#838384",
+          "coverage": 0.0274
+        },
+        {
+          "hex": "#b8b8b9",
+          "coverage": 0.0242
+        },
+        {
+          "hex": "#0f0f0f",
+          "coverage": 0.0187
+        }
+      ],
+      "detail": {
+        "energy": 38.8453
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "overdue-heading",
+      "kind": "text",
+      "note": "tracked uppercase list heading 'OVERDUE INVOICES'",
+      "grid": "D7:E7",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3539,
+        "y": 0.6986,
+        "w": 0.1079,
+        "h": 0.0319
+      },
+      "px": {
+        "x": 453,
+        "y": 503,
+        "w": 138,
+        "h": 23
+      },
+      "aspect": 6,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.8174
+        },
+        {
+          "hex": "#0d0d0d",
+          "coverage": 0.0654
+        },
+        {
+          "hex": "#666666",
+          "coverage": 0.0436
+        },
+        {
+          "hex": "#383838",
+          "coverage": 0.0436
+        },
+        {
+          "hex": "#9b9b9b",
+          "coverage": 0.03
+        }
+      ],
+      "detail": {
+        "energy": 42.9497
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 15,
+          "capHeightPx": 9.1,
+          "inkIsDark": true,
+          "allCaps": true,
+          "advance": 0.6965,
+          "advTall": 0.6965,
+          "advX": null,
+          "gap": 0.2566,
+          "xRatio": null,
+          "stemW": 0.2361,
+          "contrast": 1.0614,
+          "serif": 0.2173,
+          "densTall": 0.6096,
+          "densX": null,
+          "weight": 0.6096
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "overdue-count",
+      "kind": "text",
+      "note": "right-aligned muted count '3 invoices'",
+      "grid": "F7:G7",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.575,
+        "y": 0.6986,
+        "w": 0.0531,
+        "h": 0.0319
+      },
+      "px": {
+        "x": 736,
+        "y": 503,
+        "w": 68,
+        "h": 23
+      },
+      "aspect": 2.9565,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.8804
+        },
+        {
+          "hex": "#b9b9b9",
+          "coverage": 0.0707
+        },
+        {
+          "hex": "#838383",
+          "coverage": 0.0489
+        }
+      ],
+      "detail": {
+        "energy": 12.1315
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 9,
+          "capHeightPx": 9.8,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.5788,
+          "advTall": 0.2383,
+          "advX": 0.5958,
+          "gap": 0.0681,
+          "xRatio": 0.7096,
+          "stemW": 0.2085,
+          "contrast": 1.0589,
+          "serif": 0.2365,
+          "densTall": 0.6781,
+          "densX": 0.6236,
+          "weight": 0.6781
+        },
+        "widthClass": "normal",
+        "weightClass": "black"
+      }
+    },
+    {
+      "id": "overdue-rows",
+      "kind": "control",
+      "note": "three rows: amber status dot, invoice code with muted subline 'Client · Due N days ago', right-aligned tabular amount",
+      "grid": "D7:G8",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3539,
+        "y": 0.7333,
+        "w": 0.2814,
+        "h": 0.1611
+      },
+      "px": {
+        "x": 453,
+        "y": 528,
+        "w": 360,
+        "h": 116
+      },
+      "aspect": 3.1034,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.9289
+        },
+        {
+          "hex": "#909090",
+          "coverage": 0.0351
+        },
+        {
+          "hex": "#131313",
+          "coverage": 0.0154
+        },
+        {
+          "hex": "#c0c0c0",
+          "coverage": 0.0147
+        },
+        {
+          "hex": "#626262",
+          "coverage": 0.0058
+        }
+      ],
+      "detail": {
+        "energy": 29.1322
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "money-link",
+      "kind": "text",
+      "note": "accent text link 'View all invoices and jobs →'",
+      "grid": "D9:F9",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.3407,
+        "y": 0.9111,
+        "w": 0.1668,
+        "h": 0.0489
+      },
+      "px": {
+        "x": 436,
+        "y": 656,
+        "w": 214,
+        "h": 35
+      },
+      "aspect": 6.1143,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.8885
+        },
+        {
+          "hex": "#c8c2e8",
+          "coverage": 0.0486
+        },
+        {
+          "hex": "#322671",
+          "coverage": 0.032
+        },
+        {
+          "hex": "#928ebb",
+          "coverage": 0.0237
+        },
+        {
+          "hex": "#bdaded",
+          "coverage": 0.0071
+        }
+      ],
+      "detail": {
+        "energy": 27.8134
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 23,
+          "capHeightPx": 11,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.5742,
+          "advTall": 0.2116,
+          "advX": 0.5742,
+          "gap": 0.0907,
+          "xRatio": 0.715,
+          "stemW": 0.1874,
+          "contrast": 1.0273,
+          "serif": 0.3576,
+          "densTall": 0.6433,
+          "densX": 0.6553,
+          "weight": 0.6433
+        },
+        "widthClass": "condensed",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "dispatch-card",
+      "kind": "chrome",
+      "note": "white card with hairline border holding the crew allocation",
+      "grid": "G2:J7",
+      "codeDrawn": true,
+      "container": true,
+      "snap": false,
+      "box": {
+        "x": 0.6688,
+        "y": 0.2194,
+        "w": 0.307,
+        "h": 0.5639
+      },
+      "px": {
+        "x": 856,
+        "y": 158,
+        "w": 393,
+        "h": 406
+      },
+      "aspect": 0.968,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.948
+        },
+        {
+          "hex": "#171717",
+          "coverage": 0.0155
+        },
+        {
+          "hex": "#717171",
+          "coverage": 0.015
+        },
+        {
+          "hex": "#b0b0b0",
+          "coverage": 0.0143
+        },
+        {
+          "hex": "#3f3f3f",
+          "coverage": 0.0072
+        }
+      ],
+      "detail": {
+        "energy": 20.7369
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "dispatch-title",
+      "kind": "text",
+      "note": "card title 'Today's crew allocation', medium weight",
+      "grid": "G2:I2",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.6805,
+        "y": 0.2444,
+        "w": 0.1507,
+        "h": 0.0389
+      },
+      "px": {
+        "x": 871,
+        "y": 176,
+        "w": 193,
+        "h": 28
+      },
+      "aspect": 6.8929,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.8669
+        },
+        {
+          "hex": "#161616",
+          "coverage": 0.0526
+        },
+        {
+          "hex": "#9e9e9e",
+          "coverage": 0.0387
+        },
+        {
+          "hex": "#676767",
+          "coverage": 0.0232
+        },
+        {
+          "hex": "#3f3f3f",
+          "coverage": 0.0186
+        }
+      ],
+      "detail": {
+        "energy": 53.9891
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 20,
+          "capHeightPx": 12.6,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.5948,
+          "advTall": 0.1983,
+          "advX": 0.6345,
+          "gap": 0.119,
+          "xRatio": 0.7023,
+          "stemW": 0.1858,
+          "contrast": 1.0708,
+          "serif": 0.6762,
+          "densTall": 0.701,
+          "densX": 0.6146,
+          "weight": 0.701
+        },
+        "widthClass": "normal",
+        "weightClass": "black"
+      }
+    },
+    {
+      "id": "dispatch-date",
+      "kind": "text",
+      "note": "muted date subline 'Thursday 12 Sep 2026'",
+      "grid": "G2:H2",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.6805,
+        "y": 0.2763,
+        "w": 0.1157,
+        "h": 0.0305
+      },
+      "px": {
+        "x": 871,
+        "y": 199,
+        "w": 148,
+        "h": 22
+      },
+      "aspect": 6.7273,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.85
+        },
+        {
+          "hex": "#818183",
+          "coverage": 0.09
+        },
+        {
+          "hex": "#c2c2c3",
+          "coverage": 0.0575
+        },
+        {
+          "hex": "#585868",
+          "coverage": 0.0025
+        }
+      ],
+      "detail": {
+        "energy": 29.6189
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 17,
+          "capHeightPx": 10.4,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.6106,
+          "advTall": 0.6106,
+          "advX": 0.5785,
+          "gap": 0.0964,
+          "xRatio": 0.6957,
+          "stemW": 0.1945,
+          "contrast": 1.1199,
+          "serif": null,
+          "densTall": 0.5338,
+          "densX": 0.6625,
+          "weight": 0.5338
+        },
+        "widthClass": "condensed",
+        "weightClass": "medium"
+      }
+    },
+    {
+      "id": "crew-rows",
+      "kind": "control",
+      "note": "five crew rows: grey circle with initials, name bold with muted role, right-hand outlined job chip with small van icon and 'JOB-2417 · Bayside Fitout'",
+      "grid": "G3:J7",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.6805,
+        "y": 0.325,
+        "w": 0.2835,
+        "h": 0.4389
+      },
+      "px": {
+        "x": 871,
+        "y": 234,
+        "w": 363,
+        "h": 316
+      },
+      "aspect": 1.1487,
+      "palette": [
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.9388
+        },
+        {
+          "hex": "#808080",
+          "coverage": 0.0173
+        },
+        {
+          "hex": "#191919",
+          "coverage": 0.0168
+        },
+        {
+          "hex": "#494949",
+          "coverage": 0.0141
+        },
+        {
+          "hex": "#b9b9b9",
+          "coverage": 0.013
+        }
+      ],
+      "detail": {
+        "energy": 23.7542
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "print-button",
+      "kind": "control",
+      "note": "full-width outline button 'Print day sheet' with a small printer icon, white fill, hairline border",
+      "grid": "G8:J8",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.6688,
+        "y": 0.7972,
+        "w": 0.307,
+        "h": 0.0736
+      },
+      "px": {
+        "x": 856,
+        "y": 574,
+        "w": 393,
+        "h": 53
+      },
+      "aspect": 7.4151,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.9656
+        },
+        {
+          "hex": "#101010",
+          "coverage": 0.0132
+        },
+        {
+          "hex": "#505050",
+          "coverage": 0.0119
+        },
+        {
+          "hex": "#a1a1a1",
+          "coverage": 0.0072
+        },
+        {
+          "hex": "#c8c8c8",
+          "coverage": 0.0021
+        }
+      ],
+      "detail": {
+        "energy": 14.8317
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "dispatch-link",
+      "kind": "text",
+      "note": "accent text link 'View full dispatch board →'",
+      "grid": "G9:I9",
+      "codeDrawn": true,
+      "snap": false,
+      "box": {
+        "x": 0.6688,
+        "y": 0.9069,
+        "w": 0.159,
+        "h": 0.0489
+      },
+      "px": {
+        "x": 856,
+        "y": 653,
+        "w": 204,
+        "h": 35
+      },
+      "aspect": 5.8286,
+      "palette": [
+        {
+          "hex": "#f8f8f8",
+          "coverage": 0.9022
+        },
+        {
+          "hex": "#d2ccf1",
+          "coverage": 0.0347
+        },
+        {
+          "hex": "#332375",
+          "coverage": 0.027
+        },
+        {
+          "hex": "#b5aae2",
+          "coverage": 0.0206
+        },
+        {
+          "hex": "#555188",
+          "coverage": 0.0154
+        }
+      ],
+      "detail": {
+        "energy": 27.1961
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 20,
+          "capHeightPx": 10.4,
+          "inkIsDark": true,
+          "allCaps": false,
+          "advance": 0.5748,
+          "advTall": 0.5748,
+          "advX": 0.6067,
+          "gap": 0.0958,
+          "xRatio": 0.6994,
+          "stemW": 0.2016,
+          "contrast": 1.0559,
+          "serif": 0.9832,
+          "densTall": 0.5741,
+          "densX": 0.6326,
+          "weight": 0.5741
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    }
+  ]
+}

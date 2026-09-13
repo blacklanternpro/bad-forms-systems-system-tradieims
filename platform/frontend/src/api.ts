@@ -161,9 +161,33 @@ export interface Nudge {
 }
 
 export interface ChaseList {
-  uninvoiced: { id: string; code: string; title: string; quoted_cents: number; completed_at: string | null }[];
-  overdue: { id: string; code: string; job_code: string | null; total_ex_cents: number; due_on: string | null }[];
+  uninvoiced: {
+    id: string;
+    code: string;
+    title: string;
+    quoted_cents: number;
+    completed_at: string | null;
+    client_name?: string | null;
+  }[];
+  overdue: {
+    id: string;
+    code: string;
+    job_id: string | null;
+    job_code: string | null;
+    job_title?: string | null;
+    client_name?: string | null;
+    total_ex_cents: number;
+    due_on: string | null;
+  }[];
   on_table_cents: number;
+}
+
+/** The day board: jobs with someone allocated on the date, plus who is away. */
+export interface Board {
+  date: string;
+  jobs: { id: string; code: string; title: string; status: string; client_name: string | null; site_name: string | null }[];
+  assignments: { id: string; job_id: string; user_id?: string; user_name: string; time_window: string | null }[];
+  away: { user_name: string; kind: string }[];
 }
 
 export interface TimelineEvent { id: string; kind: string; summary: string; created_at: string }

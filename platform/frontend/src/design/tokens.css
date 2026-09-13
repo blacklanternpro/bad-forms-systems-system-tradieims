@@ -1,29 +1,31 @@
-/* DAYBOOK — light print modernism, Swiss discipline.
-   Paper is cool-neutral, not yellowed. Stamp yellow is a STATUS
-   mark only — never the primary verb, never nav fill, never brand. */
+/* DAYBOOK base — neutral product foundation.
+   Pure neutrals, whisper hairlines, one accent slot (`--mark`) that a
+   client brand retints in one place. Stamp yellow is a STATUS mark
+   only — never the primary verb, never nav fill, never brand. */
 
 :root {
-  --paper: #f7f6f3;
+  --paper: #fafaf9;
   --paper-raise: #ffffff;
-  --paper-sink: #f0eee8;
-  --ink: #1a1916;
-  --ink-mute: #5c5854;
-  --ink-faint: #8a8580;
-  --rule: #e6e2dc;
-  --rule-strong: #c9c4bb;
+  --paper-sink: #f4f4f5;
+  --ink: #18181b;
+  --ink-mute: #63636b;
+  --ink-faint: #8b8b94;
+  --rule: #e4e4e7;
+  --rule-strong: #d4d4d8;
 
   /* Primary verb = ink. Stamp yellow is semantic, not CTA. */
-  --mark: #1c1917;
+  --mark: #18181b;
   --mark-ink: #ffffff;
+  --mark-soft: color-mix(in srgb, var(--mark) 8%, transparent);
   --stamp-paper: #e8c547;
-  --stamp-ink: #1a1916;
+  --stamp-ink: #18181b;
 
   --ok: #2f6b4f;
   --warn: #b45309;
   --bad: #9b2335;
-  --hold: #5c5854;
+  --hold: #63636b;
   --live: #1f4d3a;
-  --focus: #1a1916;
+  --focus: var(--mark);
   --overlay: color-mix(in srgb, var(--ink) 32%, transparent);
 
   --font-ui: "IBM Plex Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -34,13 +36,15 @@
   --lh: 1.45;
   --tracking-label: 0.02em;
 
-  --r: 4px;
+  --r: 6px;
+  --r-sm: 4px;
   --hair: 1px;
   --pad: 16px;
   --gap: 12px;
   --tap-min: 44px;
-  --shadow: none;
-  --page-max: 1120px;
+  --tap-desk: 32px;
+  --shadow: 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent), 0 2px 6px color-mix(in srgb, var(--ink) 3%, transparent);
+  --page-max: 1280px;
 
   --confirm-ms: 140ms;
   --sheet-ms: 180ms;
@@ -104,6 +108,7 @@ html[data-theme="paper-docket"] {
 
 html[data-glove="on"] {
   --tap-min: 60px;
+  --tap-desk: 60px;
   --fs-body: 16px;
   --pad: 20px;
   --gap: 16px;

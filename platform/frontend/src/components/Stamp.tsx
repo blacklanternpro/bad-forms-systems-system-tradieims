@@ -1,5 +1,5 @@
 /** Ink-stamp status. The DAYBOOK status atom — never a pastel chip, never a CTA. */
-export type StampTone = "ok" | "warn" | "bad" | "info" | "mute";
+export type StampTone = "ok" | "warn" | "bad" | "info" | "mute" | "accent";
 
 export interface StampProps {
   label: string;

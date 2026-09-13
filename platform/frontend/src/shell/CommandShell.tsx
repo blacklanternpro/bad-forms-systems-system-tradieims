@@ -56,6 +56,14 @@ export default function CommandShell({ children }: CommandShellProps) {
         ? { label: "Demo yard", tone: "info" as const }
         : null;
 
+  const initials = s.user.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
     <div style={{ minHeight: "100vh" }}>
       <header className="bf-mast">
@@ -65,12 +73,21 @@ export default function CommandShell({ children }: CommandShellProps) {
             Office
           </span>
         )}
+
+        <nav className="bf-nav" aria-label="Primary">
+          {navItems().map((n) => (
+            <NavLink key={n.to} to={n.to} end={n.end}>
+              {n.label}
+            </NavLink>
+          ))}
+        </nav>
+
         <form
+          className="bf-mast__tools"
           onSubmit={(e) => {
             e.preventDefault();
             if (q.trim()) nav(`/search?q=${encodeURIComponent(q.trim())}`);
           }}
-          style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}
         >
           <input
             className="bf-search"
@@ -80,11 +97,13 @@ export default function CommandShell({ children }: CommandShellProps) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
-          <NavLink to="/notifications" className="bf-label" data-testid="bell" style={{ textDecoration: "none", whiteSpace: "nowrap" }}>
+          <NavLink to="/notifications" className="bf-mast__alerts" data-testid="bell">
             Alerts{unread > 0 ? ` (${unread})` : ""}
           </NavLink>
-          <span className="bf-label" style={{ whiteSpace: "nowrap" }}>
-            {s.user.name}
+          <ThemeSwitch compact />
+          <GloveToggle />
+          <span className="bf-avatar" title={s.user.name} aria-label={`Signed in as ${s.user.name}`} role="img">
+            {initials}
           </span>
           <button
             type="button"
@@ -99,18 +118,6 @@ export default function CommandShell({ children }: CommandShellProps) {
           </button>
         </form>
       </header>
-
-      <nav className="bf-nav" aria-label="Primary">
-        {navItems().map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.end}>
-            {n.label}
-          </NavLink>
-        ))}
-        <span style={{ marginLeft: "auto", display: "inline-flex", gap: 10, alignItems: "center" }}>
-          <ThemeSwitch />
-          <GloveToggle />
-        </span>
-      </nav>
 
       <main className="bf-content">{children}</main>
     </div>

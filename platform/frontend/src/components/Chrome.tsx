@@ -41,15 +41,18 @@ export function applyBrand(tokens: Record<string, string> | undefined): void {
 
 export interface ThemeSwitchProps {
   testId?: string;
+  /** Hide the visible "Theme" label (the select keeps an accessible name). */
+  compact?: boolean;
 }
-export function ThemeSwitch({ testId }: ThemeSwitchProps) {
+export function ThemeSwitch({ testId, compact = false }: ThemeSwitchProps) {
   const [theme, setTheme] = useState<ThemeName>(currentTheme());
   useEffect(() => applyTheme(theme), [theme]);
   return (
     <label className="bf-label" style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
-      Theme
+      {!compact && "Theme"}
       <select
         className="bf-compact"
+        aria-label="Theme"
         data-testid={testId ?? "theme-switch"}
         value={theme}
         onChange={(e) => setTheme(e.target.value as ThemeName)}

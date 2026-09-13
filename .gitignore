@@ -90,3 +90,8 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+.impeccable/review/
+.impeccable/build/scaffold/
+.impeccable/build/font-match/
+.impeccable/build/comp-grid.png
+.impeccable/build/state.json

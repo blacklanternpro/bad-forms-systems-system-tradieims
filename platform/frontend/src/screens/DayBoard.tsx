@@ -1,17 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api";
+import { api, type Board } from "../api";
 import Button from "../components/Button";
 import { EmptyView, ErrorView, LoadingView } from "../components/StatusViews";
 import Ticket from "../components/Ticket";
 import { useAction, useLoad } from "../hooks";
-
-interface Board {
-  date: string;
-  jobs: { id: string; code: string; title: string; status: string; client_name: string | null; site_name: string | null }[];
-  assignments: { id: string; job_id: string; user_name: string; time_window: string | null }[];
-  away: { user_name: string; kind: string }[];
-}
 
 export default function DayBoard() {
   const nav = useNavigate();
