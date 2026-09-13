@@ -10,6 +10,13 @@ if [ ! -f "$PGDATA/PG_VERSION" ]; then
   mkdir -p $PGDATA && chown -R postgres:postgres $PGDATA && chmod 700 $PGDATA
   su postgres -c "$PGBIN/initdb -D $PGDATA" >/dev/null
 fi
+# git does not track empty directories, so a pgdata restored from a clone is
+# missing the scratch dirs postgres refuses to start without.
+for d in pg_commit_ts pg_dynshmem pg_notify pg_replslot pg_serial pg_snapshots \
+         pg_stat pg_stat_tmp pg_tblspc pg_twophase pg_logical/mappings \
+         pg_logical/snapshots pg_wal/archive_status; do
+  mkdir -p "$PGDATA/$d"
+done
 chown -R postgres:postgres $PGDATA && chmod 700 $PGDATA
 if ! su postgres -c "$PGBIN/pg_ctl -D $PGDATA status" >/dev/null 2>&1; then
   service postgresql stop >/dev/null 2>&1 || true
