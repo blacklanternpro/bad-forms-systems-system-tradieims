@@ -345,6 +345,23 @@ select.bf-compact {
   min-height: var(--tap-desk);
 }
 
+/* Phone-width Command Center: the tools flow into the masthead's own wrap so
+   the bar settles in three rows (identity + search, controls, nav). */
+@media (max-width: 719px) {
+  .bf-mast__tools {
+    display: contents;
+  }
+
+  .bf-search {
+    flex: 1 1 100px;
+    min-width: 0;
+  }
+
+  .bf-avatar {
+    display: none;
+  }
+}
+
 .bf-sheet {
   position: fixed;
   inset: 0;

@@ -139,7 +139,7 @@ function TriageCard({ item }: { item: TriageItem }) {
   const body = (
     <>
       <span className="desk-card__icon">
-        <Icon name={item.icon} size={24} />
+        <Icon name={item.icon} size={32} />
       </span>
       <span>
         <span className="desk-card__title">{item.title}</span>
@@ -385,7 +385,8 @@ export default function DeskLedger({
                           <Link to={`/jobs/${job.id}`} className="desk-jobchip" title={`${job.code} · ${job.title}`}>
                             <Icon name="van" size={16} />
                             <span className="desk-jobchip__text">
-                              <span className="bf-mono">{job.code}</span> · {job.site_name ?? job.title}
+                              <span className="desk-jobchip__code">{job.code}</span>
+                              <span className="desk-jobchip__site">{job.site_name ?? job.title}</span>
                             </span>
                           </Link>
                         ) : (
