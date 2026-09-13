@@ -345,23 +345,6 @@ select.bf-compact {
   min-height: var(--tap-desk);
 }
 
-/* Phone-width Command Center: the tools flow into the masthead's own wrap so
-   the bar settles in three rows (identity + search, controls, nav). */
-@media (max-width: 719px) {
-  .bf-mast__tools {
-    display: contents;
-  }
-
-  .bf-search {
-    flex: 1 1 100px;
-    min-width: 0;
-  }
-
-  .bf-avatar {
-    display: none;
-  }
-}
-
 .bf-sheet {
   position: fixed;
   inset: 0;
@@ -487,6 +470,58 @@ select.bf-compact {
 .bf-nav button[aria-current="page"] {
   color: var(--ink);
   border-bottom-color: var(--mark);
+}
+
+/* Phone-width Command Center: the tools flow into the masthead's own wrap so
+   the bar settles in three rows (identity + sign out, search + controls, nav). */
+@media (max-width: 719px) {
+  .bf-mast {
+    gap: 6px;
+  }
+
+  .bf-mast__tools {
+    display: contents;
+  }
+
+  .bf-mast__alerts {
+    order: 1;
+    margin-left: auto;
+    padding: 0 4px;
+  }
+
+  .bf-mast .bf-mast__signout {
+    order: 1;
+    padding: 0 4px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--ink-mute);
+  }
+
+  .bf-search {
+    order: 2;
+    flex: 1 1 60px;
+    min-width: 0;
+  }
+
+  .bf-mast__tools .bf-label,
+  .bf-mast__tools .bf-chip {
+    order: 3;
+  }
+
+  .bf-avatar {
+    display: none;
+  }
+
+  .bf-nav {
+    justify-content: space-between;
+    padding: 0 calc(var(--pad) - 6px);
+  }
+
+  .bf-nav a,
+  .bf-nav button {
+    padding: 0 6px;
+    font-size: 12.5px;
+  }
 }
 
 @media (min-width: 1100px) {

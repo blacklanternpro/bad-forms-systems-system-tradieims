@@ -108,7 +108,7 @@ export default function CommandShell({ children }: CommandShellProps) {
           <button
             type="button"
             data-testid="logout"
-            className="bf-quiet-btn"
+            className="bf-quiet-btn bf-mast__signout"
             onClick={() => {
               setSession(null);
               nav("/login");
