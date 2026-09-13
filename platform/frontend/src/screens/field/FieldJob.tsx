@@ -278,17 +278,20 @@ export default function FieldJob() {
                   </span>
                   <span className="fd-list__body">
                     <span className="fd-list__title">{s.name}</span>
-                    <span className="fd-list__sub">{done ? "Signed off" : s.requires_photo ? "Needs a photo first" : "Open"}</span>
+                    {!done && s.requires_photo ? (
+                      <span className="fd-list__sub">
+                        <Stamp label="Photo required" tone="warn" />
+                      </span>
+                    ) : (
+                      <span className="fd-list__sub">{done ? "Signed off" : "Open"}</span>
+                    )}
                   </span>
                   {done ? (
                     <Stamp label="Done" tone="ok" />
                   ) : (
-                    <span className="fd-list__end">
-                      {s.requires_photo && <Stamp label="Photo" tone="warn" />}
-                      <Button size="sm" disabled={act.busy} onClick={() => stageDone(s.id)} testId={`stage-${s.sort}`}>
-                        Sign off
-                      </Button>
-                    </span>
+                    <Button size="sm" disabled={act.busy} onClick={() => stageDone(s.id)} testId={`stage-${s.sort}`}>
+                      Sign off
+                    </Button>
                   )}
                 </li>
               );

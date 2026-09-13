@@ -512,6 +512,8 @@
 }
 
 .fd-list__sub {
+  display: flex;
+  align-items: center;
   font-size: 12px;
   color: var(--ink-mute);
 }
