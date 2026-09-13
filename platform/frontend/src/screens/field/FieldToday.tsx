@@ -10,6 +10,18 @@ import "./Field.css";
 
 type Day = "today" | "tomorrow";
 
+/** Minutes from midnight for the start of a "7:00 – 11:30" window; early hours read as afternoon on a trade day. */
+function windowStart(window: string | null): number {
+  const m = window?.match(/^\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (!m) return Number.POSITIVE_INFINITY;
+  let h = Number(m[1]);
+  const min = Number(m[2] ?? 0);
+  const suffix = m[3]?.toLowerCase();
+  if (suffix === "pm" && h < 12) h += 12;
+  else if (!suffix && h <= 5) h += 12;
+  return h * 60 + min;
+}
+
 const DAYS: { id: Day; label: string }[] = [
   { id: "today", label: "Today" },
   { id: "tomorrow", label: "Tomorrow" },
@@ -19,7 +31,7 @@ const DAYS: { id: Day; label: string }[] = [
 export default function FieldToday() {
   const [day, setDay] = useState<Day>("today");
   const board = useLoad(() => api<FieldBoard>(`/field/${day}`), [day]);
-  const jobs = board.data?.jobs ?? [];
+  const jobs = [...(board.data?.jobs ?? [])].sort((a, b) => windowStart(a.window) - windowStart(b.window));
 
   return (
     <div className="fd-screen">

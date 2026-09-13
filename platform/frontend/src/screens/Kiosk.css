@@ -121,6 +121,11 @@
   margin: 0 auto;
 }
 
+.ks-main__centre {
+  align-self: center;
+  margin-top: clamp(0px, 8vh, 72px);
+}
+
 .ks-pin__dots {
   display: flex;
   justify-content: center;

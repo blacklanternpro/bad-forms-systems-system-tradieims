@@ -112,8 +112,8 @@ function KioskPin({ onSignedIn }: KioskPinProps) {
   }
 
   return (
-    <KioskFrame heading={`${yard} kiosk`} sub="Tap your PIN" stamp="Kiosk">
-      <div className="ks-pin">
+    <KioskFrame heading="Tap your PIN" sub={`Yard ${yard}`} stamp="Kiosk">
+      <div className="ks-pin ks-main__centre">
         <p className="ks-pin__dots" aria-label={`${pin.length} of 4 digits entered`} role="status">
           {[0, 1, 2, 3].map((i) => (
             <span key={i} className={`ks-pin__dot${i < pin.length ? " ks-pin__dot--on" : ""}`} aria-hidden="true" />
@@ -199,6 +199,7 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
   const done = p.stages.filter((s) => s.completed_at).length;
   const next = p.stages.find((s) => !s.completed_at);
   const share = p.stages.length ? Math.round((done / p.stages.length) * 100) : 0;
+  const photoNeeded = Boolean(next?.requires_photo) && !photoIn;
 
   const signOff = () => {
     if (!next || act.busy) return;
@@ -253,16 +254,17 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
           {act.error && <ErrorView message={act.error} />}
           <KioskButton
             label={act.busy ? "Working…" : "Sign off"}
-            hint={`Marks "${next.name}" complete`}
-            tone="mark"
+            hint={photoNeeded ? "Put a photo in first" : `Marks "${next.name}" complete`}
+            tone={photoNeeded ? "quiet" : "mark"}
             icon="check"
             testId="kiosk-signoff"
-            disabled={act.busy}
+            disabled={act.busy || photoNeeded}
             onClick={signOff}
           />
           <KioskButton
             label="Photo"
-            hint={next.requires_photo ? "This hold point needs one before sign-off" : "Evidence photo onto the job"}
+            hint={photoNeeded ? "This hold point needs one before sign-off" : "Evidence photo onto the job"}
+            tone={photoNeeded ? "mark" : "quiet"}
             icon="camera"
             testId="kiosk-photo"
             disabled={act.busy}

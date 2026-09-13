@@ -423,7 +423,8 @@ select.bf-compact {
   padding: 28px 20px;
   text-align: center;
   border-radius: var(--r);
-  background: var(--paper-sink);
+  border: var(--hair) dashed var(--rule-strong);
+  background: transparent;
 }
 
 .bf-state__icon {
@@ -433,9 +434,8 @@ select.bf-compact {
   height: 40px;
   margin-bottom: 4px;
   border-radius: 50%;
-  background: var(--paper-raise);
+  background: var(--paper-sink);
   color: var(--ink-mute);
-  box-shadow: inset 0 0 0 var(--hair) var(--rule);
 }
 
 .bf-state__title {
@@ -454,7 +454,7 @@ select.bf-compact {
 }
 
 .bf-state--loading {
-  background: transparent;
+  border: 0;
   padding: 20px 0;
 }
 
@@ -478,7 +478,9 @@ select.bf-compact {
 }
 
 .bf-state--error {
-  background: color-mix(in srgb, var(--bad) 6%, transparent);
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--bad) 40%, transparent);
+  background: color-mix(in srgb, var(--bad) 5%, transparent);
 }
 
 .bf-state--error .bf-state__title {

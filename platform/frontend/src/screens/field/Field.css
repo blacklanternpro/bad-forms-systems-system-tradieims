@@ -357,7 +357,7 @@
 }
 
 .fd-keys__call {
-  border-radius: var(--r-pill);
+  min-height: var(--tap-min);
 }
 
 /* Clock panel */
@@ -375,15 +375,15 @@
 }
 
 .fd-clock__dot {
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  height: 7px;
+  margin: 0 3px;
   border-radius: 50%;
   background: var(--ink-faint);
 }
 
 .fd-clock--on .fd-clock__dot {
   background: var(--ok);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 14%, transparent);
 }
 
 .fd-clock__title {
@@ -490,8 +490,8 @@
 }
 
 .fd-list__mark--done {
-  background: var(--ok);
-  color: var(--paper-raise);
+  background: var(--mark);
+  color: var(--mark-ink);
   box-shadow: none;
 }
 
@@ -516,9 +516,6 @@
   color: var(--ink-mute);
 }
 
-.fd-list__sub--warn {
-  color: var(--warn);
-}
 
 .fd-list__end {
   display: inline-flex;
@@ -528,7 +525,7 @@
 
 .fd-list__row .bf-btn--sm {
   min-height: var(--tap-min);
-  border-radius: var(--r-pill);
+  border-radius: var(--r);
 }
 
 /* Capture sheet */
