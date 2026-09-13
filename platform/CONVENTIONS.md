@@ -34,14 +34,19 @@ anatomy for jobs, dockets, quotes: code, hairline rules, stamp) and the **stamp*
 Required:
 - Paper-light ground, ink text, hairline ledger rules (1px, low-contrast).
 - Tabular numerals for every figure (`font-variant-numeric: tabular-nums`).
-- Two typefaces only: the UI grotesque and the mono face for codes/money.
+- Two typefaces only: IBM Plex Sans (UI) and IBM Plex Mono (codes/money).
+- Sentence case for nav, page titles, buttons, and field labels. Stamps stay uppercase.
 - Motion only confirms an action (≤150ms); nothing decorative.
 - Empty, loading, and error states designed for every screen.
 - Mobile-first; glove-mode variants honour `--tap-min` and `--contrast-boost`.
 - Print parity: day sheet, docket, quote, and claim each have a print-clean form.
+- Stamp: status only (Live / Hold / Overdue / Paid). Yellow (`--stamp-paper`) is a status mark, never a primary button, never nav fill.
+- Primary verb: ink fill on paper. `--mark` is the verb colour (ink by default; org brand may retint).
 
 Forbidden (violations, not style choices):
 - Gradients, glassmorphism, blur overlays, purple-on-dark SaaS defaults.
+- Yellow/gold as the primary CTA or active nav fill.
+- ALL-CAPS chrome (nav, buttons, titles). Stamps are the exception.
 - Stock illustration, emoji in product UI, decorative animation.
 - Hard-coded visual values in components (tokens only).
 - Inventing a new visual pattern when a gallery component exists.

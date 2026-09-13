@@ -20,7 +20,11 @@ export interface LedgerTableProps<T> {
 export default function LedgerTable<T>({ columns, rows, rowKey, onRowClick, empty, testId }: LedgerTableProps<T>) {
   if (rows.length === 0) {
     return (
-      <p className="bf-label" data-testid={testId ? `${testId}-empty` : undefined} style={{ padding: "28px 0", textAlign: "center", borderTop: "1px solid var(--rule)", borderBottom: "1px solid var(--rule)" }}>
+      <p
+        className="bf-label"
+        data-testid={testId ? `${testId}-empty` : undefined}
+        style={{ padding: "28px 0", textAlign: "center", borderTop: "var(--hair) solid var(--rule)", borderBottom: "var(--hair) solid var(--rule)" }}
+      >
         {empty}
       </p>
     );
@@ -31,7 +35,11 @@ export default function LedgerTable<T>({ columns, rows, rowKey, onRowClick, empt
         <thead>
           <tr>
             {columns.map((c) => (
-              <th key={c.key} className="bf-label" style={{ textAlign: c.align ?? "left", padding: "8px 10px", borderBottom: "1px solid var(--rule-strong)", fontWeight: 500 }}>
+              <th
+                key={c.key}
+                className="bf-label"
+                style={{ textAlign: c.align ?? "left", padding: "8px 10px", borderBottom: "var(--hair) solid var(--rule-strong)", fontWeight: 500 }}
+              >
                 {c.label}
               </th>
             ))}
@@ -48,7 +56,11 @@ export default function LedgerTable<T>({ columns, rows, rowKey, onRowClick, empt
               onMouseLeave={(e) => (e.currentTarget.style.background = "")}
             >
               {columns.map((c) => (
-                <td key={c.key} className={c.align === "right" ? "bf-num" : undefined} style={{ padding: "10px", borderBottom: "1px solid var(--rule)", fontSize: 14, textAlign: c.align ?? "left" }}>
+                <td
+                  key={c.key}
+                  className={c.align === "right" ? "bf-num" : undefined}
+                  style={{ padding: "11px 10px", borderBottom: "var(--hair) solid var(--rule)", fontSize: 14, textAlign: c.align ?? "left" }}
+                >
                   {c.render(row)}
                 </td>
               ))}

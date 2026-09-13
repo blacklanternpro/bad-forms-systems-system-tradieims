@@ -1,0 +1,8 @@
+{
+  "approved": true,
+  "surface": "/desk",
+  "direction": "Option A — Neutral Product Foundation (Linear/Vercel/Stripe school) on the Candidate 3 Morning Ledger Triptych",
+  "seed": "8927909e",
+  "size": "1280x720",
+  "prompt": "Desktop web app screen, 1280x720, for BAD FORM Systems Desk. Structure first: thin top bar with typeset wordmark 'BAD FORM Systems', a 'Desk · busy' status pill, search, shortcut hint, bell, avatar. Below, one page title line 'The morning ledger — Thursday 12 Sep 2026'. Then three equal columns on a whisper-bordered white-on-neutral ground. Column 1 'Triage': three stacked white cards each with a small line icon, a title, a muted subline, and a right-hand affordance (chevron, RECALL chip, 7 DAYS chip): '3 captures waiting review', 'Recall alert HVAC-1187', 'Licence expiry Driver licence J. Nguyen'. Column 2 'Money on the table': one white card with 'TOTAL ON THE TABLE $42,850.00', a thin progress rule, '12 jobs · $42,850.00 uninvoiced', then an 'UNINVOICED JOBS' list of four rows (JOB code, subline, amount, dark 'Draft invoice' button each) and an 'OVERDUE INVOICES' list of three rows with amber dots and amounts. Column 3 'Dispatch': white card 'Today's crew allocation' with five crew rows (initial avatar, name, role, job chip), then a 'Print day sheet' outline button. Each column ends with a small violet text link with arrow. Pure neutrals: ground #FAFAF9, surfaces #FFFFFF, ink #18181B, muted #71717A, borders #E4E4E7; the accent colour isolated to the primary button, active state, dots and links. 6px radii, hairline borders, near-invisible shadows, geometric humanist sans, tabular numerals. No gradients, no illustrations, no photography."
+}

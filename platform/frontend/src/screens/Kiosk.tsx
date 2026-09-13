@@ -1,50 +1,40 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, getSession, setSession, type FieldBoard, type FieldJobPack, type Session } from "../api";
+import Icon from "../components/Icon";
 import KioskButton from "../components/KioskButton";
 import Stamp from "../components/Stamp";
 import { EmptyView, ErrorView, LoadingView } from "../components/StatusViews";
 import { useAction, useLoad } from "../hooks";
+import "./Kiosk.css";
 
 const YARD_KEY = "bf_kiosk_yard";
 
 interface KioskFrameProps {
   heading: string;
   sub?: string;
+  stamp?: string;
   onBack?: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 /** Rugged-tablet chrome: giant type, one heading, at most two controls below. */
-function KioskFrame({ heading, sub, onBack, children }: KioskFrameProps) {
+function KioskFrame({ heading, sub, stamp, onBack, children }: KioskFrameProps) {
   return (
-    <div className="bf-page" style={{ maxWidth: 720, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <header style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 0 14px", borderBottom: "2px solid var(--ink)" }}>
+    <div className="ks">
+      <header className="ks-mast">
         {onBack && (
-          <button
-            data-testid="kiosk-back"
-            onClick={onBack}
-            aria-label="Back"
-            style={{
-              minWidth: 72,
-              minHeight: 72,
-              fontSize: 30,
-              background: "var(--ground-raise)",
-              color: "var(--ink)",
-              border: "2px solid var(--rule-strong)",
-              borderRadius: "var(--radius)",
-              cursor: "pointer",
-            }}
-          >
-            ←
+          <button type="button" data-testid="kiosk-back" onClick={onBack} aria-label="Back" className="ks-back">
+            <Icon name="arrow-left" size={28} />
           </button>
         )}
-        <div>
-          <h1 className="bf-h1" style={{ fontSize: 26, margin: 0 }}>{heading}</h1>
-          {sub && <p className="bf-mono" style={{ margin: "4px 0 0", fontSize: 14, color: "var(--ink-mute)" }}>{sub}</p>}
+        <div className="ks-mast__text">
+          <h1 className="ks-mast__title">{heading}</h1>
+          {sub && <p className="ks-mast__sub">{sub}</p>}
         </div>
+        {stamp && <Stamp label={stamp} tone="mute" />}
       </header>
-      <main style={{ flex: 1, padding: "20px 0", display: "grid", gap: 14, alignContent: "start" }}>{children}</main>
+      <main className="ks-main">{children}</main>
     </div>
   );
 }
@@ -52,6 +42,8 @@ function KioskFrame({ heading, sub, onBack, children }: KioskFrameProps) {
 interface KioskPinProps {
   onSignedIn: (s: Session) => void;
 }
+
+const PAD: string[] = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"];
 
 /** One-time set-up: yard code remembered on the device, then it's PIN only.
     Once signed in the session sticks — no daily login ritual. */
@@ -78,7 +70,7 @@ function KioskPin({ onSignedIn }: KioskPinProps) {
         setSession(s);
         onSignedIn(s);
       } catch {
-        setError("PIN not recognised");
+        setError("PIN not recognised. Try again or ask the office.");
         setPin("");
       } finally {
         setBusy(false);
@@ -88,22 +80,27 @@ function KioskPin({ onSignedIn }: KioskPinProps) {
 
   if (!yardSet) {
     return (
-      <KioskFrame heading="SET UP THIS KIOSK" sub="Enter the yard code once — this tablet remembers it.">
-        <label className="bf-label" style={{ display: "block" }}>
-          YARD CODE
+      <KioskFrame heading="Set up this kiosk" sub="Enter the yard code once. This tablet remembers it." stamp="Kiosk">
+        <label className="ks-field">
+          <span className="ks-field__label">Yard code</span>
           <input
             data-testid="kiosk-yard"
             value={yard}
             onChange={(e) => setYard(e.target.value.toLowerCase())}
             placeholder="e.g. steelhaus"
-            style={{ display: "block", width: "100%", marginTop: 6, fontSize: 24, padding: "16px 14px", fontFamily: "var(--font-mono)" }}
+            className="ks-field__input bf-mono"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
           />
         </label>
         <KioskButton
-          label="LOCK IT IN"
+          label="Lock it in"
           hint="Stored on this device"
           tone="mark"
+          icon="key"
           testId="kiosk-yard-save"
+          disabled={!yard.trim()}
           onClick={() => {
             if (!yard.trim()) return;
             localStorage.setItem(YARD_KEY, yard.trim());
@@ -115,56 +112,51 @@ function KioskPin({ onSignedIn }: KioskPinProps) {
   }
 
   return (
-    <KioskFrame heading={`${yard.toUpperCase()} KIOSK`} sub="Tap your PIN">
-      <p className="bf-mono" aria-label="PIN entered" style={{ textAlign: "center", fontSize: 34, letterSpacing: "0.5em", minHeight: 46, margin: 0 }}>
-        {"●".repeat(pin.length)}
-        {"○".repeat(4 - pin.length)}
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-        {["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"].map((d, i) =>
-          d === "" ? (
-            <span key={i} />
-          ) : (
-            <button
-              key={i}
-              data-testid={`kiosk-pin-${d}`}
-              disabled={busy}
-              onClick={() => void tapDigit(d)}
-              style={{
-                minHeight: 88,
-                fontSize: 30,
-                fontFamily: "var(--font-mono)",
-                background: "var(--ground-raise)",
-                color: "var(--ink)",
-                border: "2px solid var(--rule-strong)",
-                borderRadius: "var(--radius)",
-                cursor: "pointer",
-                opacity: busy ? 0.4 : 1,
-              }}
-            >
-              {d}
-            </button>
-          ),
-        )}
-      </div>
-      {error && (
-        <p role="alert" data-testid="kiosk-error" style={{ color: "var(--stamp-bad)", fontFamily: "var(--font-mono)", fontSize: 15, textAlign: "center", margin: 0 }}>
-          {error}
+    <KioskFrame heading="Tap your PIN" sub={`Yard ${yard}`} stamp="Kiosk">
+      <div className="ks-pin ks-main__centre">
+        <p className="ks-pin__dots" aria-label={`${pin.length} of 4 digits entered`} role="status">
+          {[0, 1, 2, 3].map((i) => (
+            <span key={i} className={`ks-pin__dot${i < pin.length ? " ks-pin__dot--on" : ""}`} aria-hidden="true" />
+          ))}
         </p>
-      )}
-      <button
-        className="bf-label"
-        data-testid="kiosk-change-yard"
-        onClick={() => {
-          localStorage.removeItem(YARD_KEY);
-          setYardSet(false);
-          setPin("");
-          setError(null);
-        }}
-        style={{ background: "none", border: 0, color: "var(--ink-mute)", cursor: "pointer", minHeight: "var(--tap-min)", justifySelf: "center" }}
-      >
-        CHANGE YARD
-      </button>
+        <div className="ks-pad" role="group" aria-label="PIN pad">
+          {PAD.map((d, i) =>
+            d === "" ? (
+              <span key={i} aria-hidden="true" />
+            ) : (
+              <button
+                key={i}
+                type="button"
+                data-testid={`kiosk-pin-${d}`}
+                disabled={busy}
+                onClick={() => void tapDigit(d)}
+                className={`ks-pad__key${d === "⌫" ? " ks-pad__key--quiet" : ""}`}
+                aria-label={d === "⌫" ? "Delete" : d}
+              >
+                {d === "⌫" ? <Icon name="backspace" size={30} /> : d}
+              </button>
+            ),
+          )}
+        </div>
+        {error && (
+          <p role="alert" data-testid="kiosk-error" className="ks-pin__error">
+            {error}
+          </p>
+        )}
+        <button
+          type="button"
+          className="ks-quiet"
+          data-testid="kiosk-change-yard"
+          onClick={() => {
+            localStorage.removeItem(YARD_KEY);
+            setYardSet(false);
+            setPin("");
+            setError(null);
+          }}
+        >
+          Change yard
+        </button>
+      </div>
     </KioskFrame>
   );
 }
@@ -181,13 +173,33 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [photoIn, setPhotoIn] = useState(false);
 
-  if (pack.loading) return <KioskFrame heading="OPENING JOB" onBack={onBack}><LoadingView label="OPENING JOB" /></KioskFrame>;
-  if (pack.error) return <KioskFrame heading="JOB" onBack={onBack}><ErrorView message={pack.error} onRetry={pack.reload} /></KioskFrame>;
-  if (!pack.data) return <KioskFrame heading="JOB" onBack={onBack}><EmptyView title="JOB NOT FOUND" /></KioskFrame>;
+  if (pack.loading) {
+    return (
+      <KioskFrame heading="Opening job" onBack={onBack}>
+        <LoadingView label="Opening job" rows={2} />
+      </KioskFrame>
+    );
+  }
+  if (pack.error) {
+    return (
+      <KioskFrame heading="Job" onBack={onBack}>
+        <ErrorView message={pack.error} onRetry={pack.reload} />
+      </KioskFrame>
+    );
+  }
+  if (!pack.data) {
+    return (
+      <KioskFrame heading="Job" onBack={onBack}>
+        <EmptyView icon="document" title="Job not found" />
+      </KioskFrame>
+    );
+  }
 
   const p = pack.data;
   const done = p.stages.filter((s) => s.completed_at).length;
   const next = p.stages.find((s) => !s.completed_at);
+  const share = p.stages.length ? Math.round((done / p.stages.length) * 100) : 0;
+  const photoNeeded = Boolean(next?.requires_photo) && !photoIn;
 
   const signOff = () => {
     if (!next || act.busy) return;
@@ -211,38 +223,51 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
 
   return (
     <KioskFrame heading={p.job.code} sub={p.job.title} onBack={onBack}>
-      {p.stages.length === 0 && <EmptyView title="NO STAGES ON THIS JOB" hint="The office applies an ITP from the job page." />}
+      {p.stages.length === 0 && <EmptyView icon="check" title="No stages on this job" hint="The office applies an ITP from the job page." />}
 
       {p.stages.length > 0 && !next && (
-        <div style={{ textAlign: "center", padding: "30px 0" }}>
-          <Stamp label="ALL STAGES SIGNED OFF" tone="ok" testId="kiosk-all-done" />
-          <p className="bf-mono" style={{ fontSize: 15, marginTop: 14 }}>MDR is ready for assembly at the office.</p>
+        <div className="ks-done">
+          <span className="ks-done__icon" aria-hidden="true">
+            <Icon name="check" size={36} />
+          </span>
+          <Stamp label="All stages signed off" tone="ok" testId="kiosk-all-done" />
+          <p className="ks-done__text">MDR is ready for assembly at the office.</p>
         </div>
       )}
 
       {next && (
         <>
-          <div>
-            <p className="bf-label" style={{ margin: "0 0 6px" }}>STAGE {done + 1} OF {p.stages.length}</p>
-            <p style={{ margin: 0, fontSize: 30, fontWeight: 700 }}>{next.name}</p>
-            {next.requires_photo && (
-              <p style={{ margin: "8px 0 0" }}>
-                <Stamp label={photoIn ? "PHOTO IN" : "PHOTO REQUIRED"} tone={photoIn ? "ok" : "warn"} testId="kiosk-photo-state" />
-              </p>
-            )}
-          </div>
+          <section className="ks-stage" aria-label="Next stage">
+            <div className="ks-stage__head">
+              <span className="ks-stage__count">
+                Stage {done + 1} of {p.stages.length}
+              </span>
+              {next.requires_photo && (
+                <Stamp label={photoIn ? "Photo in" : "Photo required"} tone={photoIn ? "ok" : "warn"} testId="kiosk-photo-state" />
+              )}
+            </div>
+            <p className="ks-stage__name">{next.name}</p>
+            <div className="ks-meter" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={share} aria-label="Stages signed off">
+              <span className="ks-meter__fill" style={{ transform: `scaleX(${share / 100})` }} />
+            </div>
+          </section>
           {act.error && <ErrorView message={act.error} />}
           <KioskButton
-            label={act.busy ? "WORKING…" : "SIGN OFF"}
-            hint={`Marks "${next.name}" complete`}
-            tone="mark"
+            label={act.busy ? "Working…" : "Sign off"}
+            hint={photoNeeded ? "Put a photo in first" : `Marks "${next.name}" complete`}
+            tone={photoNeeded ? "quiet" : "mark"}
+            icon="check"
             testId="kiosk-signoff"
+            disabled={act.busy || photoNeeded}
             onClick={signOff}
           />
           <KioskButton
-            label="PHOTO"
-            hint={next.requires_photo ? "This hold point needs one before sign-off" : "Evidence photo onto the job"}
+            label="Photo"
+            hint={photoNeeded ? "This hold point needs one before sign-off" : "Evidence photo onto the job"}
+            tone={photoNeeded ? "mark" : "quiet"}
+            icon="camera"
             testId="kiosk-photo"
+            disabled={act.busy}
             onClick={() => fileRef.current?.click()}
           />
           <input
@@ -251,7 +276,7 @@ function KioskJob({ jobId, onBack }: KioskJobProps) {
             accept="image/*"
             capture="environment"
             data-testid="kiosk-photo-file"
-            style={{ display: "none" }}
+            className="ks-hidden-input"
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) uploadPhoto(f);
@@ -276,29 +301,26 @@ export default function Kiosk() {
   if (jobId) return <KioskJob jobId={jobId} onBack={() => setJobId(null)} />;
 
   return (
-    <KioskFrame heading={`${session.org.name} — SHOP FLOOR`} sub={`Signed on as ${session.user.name}`}>
-      {board.loading && <LoadingView label="CHECKING THE BOARD" />}
+    <KioskFrame heading={session.org.name} sub={`Signed on as ${session.user.name}`} stamp="Shop floor">
+      <h2 className="ks-h2">Pick your job</h2>
+      {board.loading && <LoadingView label="Checking the board" rows={2} />}
       {board.error && <ErrorView message={board.error} onRetry={board.reload} />}
       {board.data && board.data.jobs.length === 0 && (
-        <EmptyView title="NOTHING ON THE BOARD TODAY" hint="If that doesn't look right, ring the office." />
+        <EmptyView icon="calendar" title="Nothing on the board today" hint="If that doesn't look right, ring the office." />
       )}
       {board.data &&
         board.data.jobs.map((j) => (
           <KioskButton
             key={j.job_id}
-            label={j.code}
-            hint={`${j.title}${j.site_name ? ` · ${j.site_name}` : ""}`}
+            label={j.title}
+            hint={`${j.code}${j.site_name ? ` · ${j.site_name}` : ""}`}
+            icon="wrench"
             testId={`kiosk-job-${j.code}`}
             onClick={() => setJobId(j.job_id)}
           />
         ))}
-      <button
-        className="bf-label"
-        data-testid="kiosk-exit"
-        onClick={() => nav("/field")}
-        style={{ background: "none", border: 0, color: "var(--ink-mute)", cursor: "pointer", minHeight: "var(--tap-min)", justifySelf: "center", marginTop: 10 }}
-      >
-        LEAVE KIOSK MODE
+      <button type="button" className="ks-quiet" data-testid="kiosk-exit" onClick={() => nav("/field")}>
+        Leave kiosk mode
       </button>
     </KioskFrame>
   );

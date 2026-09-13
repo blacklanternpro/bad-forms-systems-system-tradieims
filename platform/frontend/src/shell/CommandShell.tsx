@@ -2,27 +2,30 @@ import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { api, getSession, getVirginToken, moduleLive, setSession, subscribeVirgin, type NotificationRow } from "../api";
 import { GloveToggle, ThemeSwitch, applyBrand } from "../components/Chrome";
+import Stamp from "../components/Stamp";
 
 /** Nav is composed per instance: pack entries only appear when the module is live. */
-function navItems(): { to: string; label: string }[] {
+function navItems(): { to: string; label: string; end?: boolean }[] {
   const items = [
-    { to: "/desk", label: "DESK" },
-    { to: "/dayboard", label: "DAY BOARD" },
-    { to: "/jobs", label: "JOBS" },
-    { to: "/quotes", label: "QUOTES" },
-    { to: "/inbox", label: "INBOX" },
+    { to: "/desk", label: "Desk", end: true },
+    { to: "/dayboard", label: "Day board" },
+    { to: "/jobs", label: "Jobs" },
+    { to: "/quotes", label: "Quotes" },
+    { to: "/inbox", label: "Inbox" },
   ];
-  if (moduleLive("trades")) items.push({ to: "/certs", label: "CERTS" });
-  if (moduleLive("civil")) items.push({ to: "/plant", label: "PLANT" }, { to: "/dockets", label: "DOCKETS" });
-  if (moduleLive("fab")) items.push({ to: "/shop", label: "SHOP" });
-  if (moduleLive("fleet")) items.push({ to: "/fleet", label: "FLEET" });
-  items.push({ to: "/admin", label: "ADMIN" });
+  if (moduleLive("trades")) items.push({ to: "/certs", label: "Certs" });
+  if (moduleLive("civil")) items.push({ to: "/plant", label: "Plant" }, { to: "/dockets", label: "Dockets" });
+  if (moduleLive("fab")) items.push({ to: "/shop", label: "Shop" });
+  if (moduleLive("fleet")) items.push({ to: "/fleet", label: "Fleet" });
+  items.push({ to: "/admin", label: "Admin" });
   return items;
 }
 
-export interface CommandShellProps { children: ReactNode }
+export interface CommandShellProps {
+  children: ReactNode;
+}
 
-/** Command Center chrome: masthead, nav rail, notification count, search. */
+/** Command Center chrome: masthead, nav, notification count, search. */
 export default function CommandShell({ children }: CommandShellProps) {
   const nav = useNavigate();
   const s = getSession();
@@ -45,71 +48,78 @@ export default function CommandShell({ children }: CommandShellProps) {
 
   if (!s) return null;
 
+  const stamp = virgin
+    ? { label: "Demo cleared — reload to restore", tone: "warn" as const }
+    : s.org.pilot
+      ? { label: "Pilot", tone: "info" as const }
+      : s.org.is_demo
+        ? { label: "Demo yard", tone: "info" as const }
+        : null;
+
+  const initials = s.user.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
-    <div className="bf-page">
-      <header style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "8px 20px", borderBottom: "2px solid var(--ink)", paddingBottom: 12 }}>
-        <h1 className="bf-h1" style={{ fontSize: 20 }}>{s.org.name}</h1>
-        <span className="bf-label" data-testid="masthead-stamp">{virgin ? "DEMO CLEARED — RELOAD TO RESTORE" : s.org.pilot ? "PILOT — CAPTURE PIPELINE" : s.org.is_demo ? "DEMO YARD" : "COMMAND CENTER"}</span>
+    <div style={{ minHeight: "100vh" }}>
+      <header className="bf-mast">
+        <h1 className="bf-wordmark">{s.org.name}</h1>
+        {stamp ? <Stamp label={stamp.label} tone={stamp.tone} testId="masthead-stamp" /> : (
+          <span className="bf-label" data-testid="masthead-stamp">
+            Office
+          </span>
+        )}
+
+        <nav className="bf-nav" aria-label="Primary">
+          {navItems().map((n) => (
+            <NavLink key={n.to} to={n.to} end={n.end}>
+              {n.label}
+            </NavLink>
+          ))}
+        </nav>
+
         <form
+          className="bf-mast__tools"
           onSubmit={(e) => {
             e.preventDefault();
             if (q.trim()) nav(`/search?q=${encodeURIComponent(q.trim())}`);
           }}
-          style={{ marginLeft: "auto", display: "flex", gap: 6 }}
         >
           <input
+            className="bf-search"
             aria-label="Search everything"
             data-testid="global-search"
             placeholder="Search jobs, clients, quotes…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            style={{ minWidth: 180, minHeight: 36, padding: "4px 10px", fontSize: 13 }}
           />
-        </form>
-        <NavLink to="/notifications" className="bf-label" data-testid="bell" style={{ textDecoration: "none" }}>
-          BELL{unread > 0 ? ` (${unread})` : ""}
-        </NavLink>
-      </header>
-
-      <nav aria-label="Primary" style={{ display: "flex", flexWrap: "wrap", gap: 4, margin: "12px 0 20px" }}>
-        {navItems().map((n) => (
-          <NavLink
-            key={n.to}
-            to={n.to}
-            className="bf-label"
-            style={({ isActive }) => ({
-              padding: "8px 14px",
-              minHeight: "var(--tap-min)",
-              display: "inline-flex",
-              alignItems: "center",
-              textDecoration: "none",
-              color: isActive ? "var(--mark-ink)" : "var(--ink-mute)",
-              background: isActive ? "var(--mark)" : "transparent",
-              border: isActive ? "1px solid var(--ink)" : "1px solid transparent",
-              borderRadius: "var(--radius)",
-            })}
-          >
-            {n.label}
+          <NavLink to="/notifications" className="bf-mast__alerts" data-testid="bell">
+            Alerts{unread > 0 ? ` (${unread})` : ""}
           </NavLink>
-        ))}
-        <span style={{ marginLeft: "auto", display: "inline-flex", gap: 10, alignItems: "center" }}>
-          <ThemeSwitch />
+          <ThemeSwitch compact />
           <GloveToggle />
+          <span className="bf-avatar" title={s.user.name} aria-label={`Signed in as ${s.user.name}`} role="img">
+            {initials}
+          </span>
           <button
+            type="button"
             data-testid="logout"
-            className="bf-label"
+            className="bf-quiet-btn bf-mast__signout"
             onClick={() => {
               setSession(null);
               nav("/login");
             }}
-            style={{ background: "none", border: "1px solid var(--rule-strong)", borderRadius: "var(--radius)", padding: "8px 12px", cursor: "pointer", minHeight: "var(--tap-min)" }}
           >
-            {s.user.name.toUpperCase()} · OUT
+            Sign out
           </button>
-        </span>
-      </nav>
+        </form>
+      </header>
 
-      <main>{children}</main>
+      <main className="bf-content">{children}</main>
     </div>
   );
 }

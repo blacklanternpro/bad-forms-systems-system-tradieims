@@ -8,9 +8,9 @@ import { ApplyItp } from "./fab/Shop";
 import { JobVariations } from "./trades/Variations";
 
 const NEXT_STATUS: Record<string, { to: string; verb: string } | undefined> = {
-  quoted: { to: "scheduled", verb: "SCHEDULE" },
-  scheduled: { to: "live", verb: "START JOB" },
-  live: { to: "done", verb: "MARK DONE" },
+  quoted: { to: "scheduled", verb: "Schedule" },
+  scheduled: { to: "live", verb: "Start job" },
+  live: { to: "done", verb: "Mark done" },
 };
 
 function marginTone(margin: number, quoted: number): StampTone {
@@ -25,9 +25,9 @@ export default function JobDetail() {
   const d = useLoad(() => api<Detail>(`/jobs/${id}`), [id]);
   const act = useAction();
 
-  if (d.loading) return <LoadingView label="OPENING JOB" />;
+  if (d.loading) return <LoadingView label="Opening job" />;
   if (d.error) return <ErrorView message={d.error} onRetry={d.reload} />;
-  if (!d.data) return <EmptyView title="JOB NOT FOUND" />;
+  if (!d.data) return <EmptyView title="Job not found" />;
 
   const { job, stages, documents, timeline, captures, costing } = d.data;
   const next = NEXT_STATUS[job.status];
@@ -59,7 +59,7 @@ export default function JobDetail() {
           )}
           {job.status === "done" && (
             <Button kind="accent" disabled={act.busy} onClick={invoiceNow} testId="job-invoice">
-              INVOICE → LEDGER
+              Invoice → ledger
             </Button>
           )}
           {moduleLive("fab") && (
@@ -71,7 +71,7 @@ export default function JobDetail() {
               rel="noreferrer"
               style={{ alignSelf: "center" }}
             >
-              MDR PACK ↗
+              MDR pack ↗
             </a>
           )}
         </span>
@@ -84,15 +84,15 @@ export default function JobDetail() {
 
       <div style={{ display: "grid", gap: 24, gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
         <section aria-labelledby="costing-h">
-          <h3 id="costing-h" className="bf-label">LIVE COSTING</h3>
+          <h3 id="costing-h" className="bf-h3">Live costing</h3>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <tbody>
               {[
-                ["LABOUR", `${costing.hours.toFixed(1)} h`, money(costing.labour_cents)],
-                ["MATERIALS", "verified receipts", money(costing.materials_cents)],
-                ["PLANT / HIRE", "verified dockets", money(costing.plant_cents)],
-                ["COST TO DATE", "", money(costing.cost_cents)],
-                ["QUOTED", "", money(costing.quoted_cents)],
+                ["Labour", `${costing.hours.toFixed(1)} h`, money(costing.labour_cents)],
+                ["Materials", "verified receipts", money(costing.materials_cents)],
+                ["Plant / hire", "verified dockets", money(costing.plant_cents)],
+                ["Cost to date", "", money(costing.cost_cents)],
+                ["Quoted", "", money(costing.quoted_cents)],
               ].map(([l, sub, v]) => (
                 <tr key={l as string}>
                   <td className="bf-label" style={{ padding: "8px 0", borderBottom: "1px solid var(--rule)" }}>
@@ -103,7 +103,7 @@ export default function JobDetail() {
                 </tr>
               ))}
               <tr>
-                <td className="bf-label" style={{ padding: "10px 0" }}>MARGIN</td>
+                <td className="bf-label" style={{ padding: "10px 0" }}>Margin</td>
                 <td className="bf-num" style={{ padding: "10px 0" }}>
                   <Stamp label={money(costing.margin_cents)} tone={marginTone(costing.margin_cents, costing.quoted_cents)} testId="margin-stamp" />
                 </td>
@@ -113,11 +113,11 @@ export default function JobDetail() {
         </section>
 
         <section aria-labelledby="stages-h">
-          <h3 id="stages-h" className="bf-label">STAGES</h3>
+          <h3 id="stages-h" className="bf-h3">Stages</h3>
           {stages.length === 0 && moduleLive("fab") && id ? (
             <ApplyItp jobId={id} onApplied={d.reload} />
           ) : stages.length === 0 ? (
-            <EmptyView title="NO STAGES" hint="This job runs without staged sign-off." />
+            <EmptyView title="No stages" hint="This job runs without staged sign-off." />
           ) : (
             <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {stages.map((s) => (
@@ -129,9 +129,9 @@ export default function JobDetail() {
             </ol>
           )}
 
-          <h3 className="bf-label" style={{ marginTop: 20 }}>PAPERWORK</h3>
+          <h3 className="bf-h3" style={{ marginTop: 20 }}>Paperwork</h3>
           {captures.length === 0 && documents.length === 0 ? (
-            <EmptyView title="NO PAPERWORK YET" hint="Receipts, dockets and photos captured in the field land here." />
+            <EmptyView title="No paperwork yet" hint="Receipts, dockets and photos captured in the field land here." />
           ) : (
             <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {captures.map((c) => (
@@ -163,9 +163,9 @@ export default function JobDetail() {
         )}
 
         <section aria-labelledby="timeline-h">
-          <h3 id="timeline-h" className="bf-label">TIMELINE</h3>
+          <h3 id="timeline-h" className="bf-h3">Timeline</h3>
           {timeline.length === 0 ? (
-            <EmptyView title="NO HISTORY" />
+            <EmptyView title="No history" />
           ) : (
             <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {timeline.map((e) => (

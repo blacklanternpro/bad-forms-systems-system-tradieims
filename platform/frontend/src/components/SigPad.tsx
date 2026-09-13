@@ -73,9 +73,9 @@ export default function SigPad({ onChange, height = 160, testId }: SigPadProps) 
         style={{ width: "100%", height, background: "var(--ground-raise)", border: "1px solid var(--rule-strong)", borderRadius: "var(--radius)", touchAction: "none", display: "block" }}
       />
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-        <span className="bf-label">{dirty ? "SIGNED" : "SIGN HERE"}</span>
-        <button data-testid={testId ? `${testId}-clear` : undefined} onClick={clear} type="button" style={{ background: "none", border: 0, color: "var(--ink-mute)", cursor: "pointer", fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.1em" }}>
-          CLEAR
+        <span className="bf-label">{dirty ? "Signed" : "Sign here"}</span>
+        <button data-testid={testId ? `${testId}-clear` : undefined} onClick={clear} type="button" className="bf-quiet-btn" style={{ border: 0, minHeight: 32 }}>
+          Clear
         </button>
       </div>
     </div>

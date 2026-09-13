@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { getSession } from "./api";
 import { applyTheme, currentTheme } from "./components/Chrome";
+import DeskPreview from "./gallery/DeskPreview";
 import Gallery from "./gallery/Gallery";
 import Admin from "./screens/Admin";
 import Console from "./screens/Console";
@@ -65,6 +66,7 @@ export default function App() {
       <Route path="/" element={<Navigate to={home()} replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/gallery" element={<Gallery />} />
+      <Route path="/gallery/desk" element={cc(<DeskPreview />)} />
       <Route path="/console" element={<Console />} />
 
       <Route path="/desk" element={cc(<Desk />)} />

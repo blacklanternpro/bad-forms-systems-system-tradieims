@@ -78,6 +78,10 @@ agenthub/agents/youtube/db
 
 memory/test_credentials.md
 
+# Impeccable (keep shared config; ignore machine-local + live journals)
+.impeccable/config.local.json
+.impeccable/live/sessions/
+
 # Mobile development
 android-sdk/
 .env
@@ -86,3 +90,8 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+.impeccable/review/
+.impeccable/build/scaffold/
+.impeccable/build/font-match/
+.impeccable/build/comp-grid.png
+.impeccable/build/state.json

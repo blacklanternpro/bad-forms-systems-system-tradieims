@@ -9,6 +9,7 @@ import {
   type WorkshopQueue,
 } from "../../api";
 import Button from "../../components/Button";
+import { Chip } from "../../components/Chrome";
 import Field from "../../components/Field";
 import LedgerTable from "../../components/LedgerTable";
 import Sheet from "../../components/Sheet";
@@ -20,18 +21,18 @@ import { JobSelect } from "../fab/Shop";
 type Tab = "register" | "workshop" | "floats" | "evidence";
 
 const TAB_LABELS: Record<Tab, string> = {
-  register: "REGISTER",
-  workshop: "WORKSHOP",
-  floats: "FLOATS",
-  evidence: "SMS EVIDENCE",
+  register: "Register",
+  workshop: "Workshop",
+  floats: "Floats",
+  evidence: "SMS evidence",
 };
 
 const FLOAT_TONE: Record<FloatRow["status"], StampTone> = { planned: "info", completed: "ok", cancelled: "mute" };
 const SOURCE_LABEL: Record<string, string> = {
-  vault: "VAULT",
+  vault: "Vault",
   prestarts: "PRE-START",
-  workshop: "WORKSHOP",
-  corrective_actions: "CORRECTIVE",
+  workshop: "Workshop",
+  corrective_actions: "Corrective",
 };
 
 interface AssetSelectProps {
@@ -47,7 +48,7 @@ function AssetSelect({ label, assets, value, onChange, testId }: AssetSelectProp
     <label className="bf-label" style={{ display: "block", marginBottom: 12 }}>
       {label}
       <select data-testid={testId} value={value} onChange={(e) => onChange(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4 }}>
-        <option value="">— PICK A MACHINE —</option>
+        <option value="">— Pick a machine —</option>
         {assets.map((a) => (
           <option key={a.id} value={a.id}>
             {a.meta.code ?? "—"} — {a.name}
@@ -59,7 +60,7 @@ function AssetSelect({ label, assets, value, onChange, testId }: AssetSelectProp
 }
 
 function serviceStamp(a: FleetAsset) {
-  if (a.hours_to_service === null) return <Stamp label="NO PLAN" tone="mute" />;
+  if (a.hours_to_service === null) return <Stamp label="No plan" tone="mute" />;
   const left = Number(a.hours_to_service);
   if (left <= 0) return <Stamp label={`SERVICE DUE (${Math.abs(left).toFixed(0)}h over)`} tone="bad" />;
   if (left <= 50) return <Stamp label={`DUE IN ${left.toFixed(0)}h`} tone="warn" />;
@@ -201,27 +202,16 @@ export default function Fleet() {
 
   return (
     <div>
-      <div role="tablist" aria-label="Fleet desk" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+      <div role="tablist" aria-label="Fleet desk" className="bf-chip-row" style={{ marginBottom: 16 }}>
         {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
-          <button
+          <Chip
             key={t}
             role="tab"
-            aria-selected={tab === t}
-            data-testid={`tab-${t}`}
-            className="bf-label"
+            testId={`tab-${t}`}
+            active={tab === t}
             onClick={() => setTab(t)}
-            style={{
-              padding: "10px 16px",
-              minHeight: "var(--tap-min)",
-              cursor: "pointer",
-              background: tab === t ? "var(--mark)" : "transparent",
-              color: tab === t ? "var(--mark-ink)" : "var(--ink-mute)",
-              border: "1px solid var(--rule-strong)",
-              borderRadius: "var(--radius)",
-            }}
-          >
-            {TAB_LABELS[t]}
-          </button>
+            label={TAB_LABELS[t]}
+          />
         ))}
       </div>
       {act.error && <ErrorView message={act.error} />}
@@ -230,46 +220,46 @@ export default function Fleet() {
         <>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12, alignItems: "center" }}>
             <Button kind="mark" onClick={() => setAssetOpen(true)} testId="asset-open">
-              ADD TO REGISTER
+              Add to register
             </Button>
             <label className="bf-label" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              DEPOT
+              Depot
               <select data-testid="yard-filter" value={yard} onChange={(e) => setYard(e.target.value)}>
-                <option value="">ALL DEPOTS</option>
+                <option value="">All depots</option>
                 {(yards.data ?? []).map((y) => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
             </label>
           </div>
-          {assets.loading && <LoadingView label="PULLING THE REGISTER" />}
+          {assets.loading && <LoadingView label="Pulling the register" />}
           {assets.error && <ErrorView message={assets.error} onRetry={assets.reload} />}
-          {assets.data && assets.data.length === 0 && <EmptyView title="NOTHING ON THE REGISTER" hint="Add trucks, trailers, plant and attachments." />}
+          {assets.data && assets.data.length === 0 && <EmptyView title="Nothing on the register" hint="Add trucks, trailers, plant and attachments." />}
           {assets.data && assets.data.length > 0 && (
             <LedgerTable<FleetAsset>
               testId="fleet-table"
               rows={assets.data}
               rowKey={(a) => a.id}
-              empty="NO ASSETS"
+              empty="No assets"
               columns={[
-                { key: "code", label: "UNIT", render: (a) => <span className="bf-mono">{a.meta.code ?? "—"}</span> },
-                { key: "name", label: "ASSET", render: (a) => a.name },
-                { key: "kind", label: "KIND", render: (a) => a.kind.toUpperCase() },
-                { key: "rego", label: "REGO", render: (a) => <span className="bf-mono">{a.rego ?? "—"}</span> },
-                { key: "yard", label: "DEPOT", render: (a) => a.yard ?? "—" },
-                { key: "meter", label: "METER", align: "right", render: (a) => `${Number(a.meter_hours).toFixed(0)} h` },
-                { key: "service", label: "SERVICE", render: (a) => serviceStamp(a) },
+                { key: "code", label: "Unit", render: (a) => <span className="bf-mono">{a.meta.code ?? "—"}</span> },
+                { key: "name", label: "Asset", render: (a) => a.name },
+                { key: "kind", label: "Kind", render: (a) => a.kind.toUpperCase() },
+                { key: "rego", label: "Rego", render: (a) => <span className="bf-mono">{a.rego ?? "—"}</span> },
+                { key: "yard", label: "Depot", render: (a) => a.yard ?? "—" },
+                { key: "meter", label: "Meter", align: "right", render: (a) => `${Number(a.meter_hours).toFixed(0)} h` },
+                { key: "service", label: "Service", render: (a) => serviceStamp(a) },
                 {
                   key: "prestart",
-                  label: "PRE-START",
+                  label: "Pre-start",
                   render: (a) =>
                     a.prestart_today ? (
                       <Stamp label={a.prestart_today.toUpperCase()} tone={a.prestart_today === "pass" ? "ok" : "bad"} />
                     ) : (
-                      <Stamp label="NONE TODAY" tone="mute" />
+                      <Stamp label="None today" tone="mute" />
                     ),
                 },
-                { key: "fitted", label: "FITTED TO", render: (a) => a.carrier_name ?? "—" },
+                { key: "fitted", label: "Fitted to", render: (a) => a.carrier_name ?? "—" },
               ]}
             />
           )}
@@ -280,29 +270,29 @@ export default function Fleet() {
         <>
           <div style={{ marginBottom: 12 }}>
             <Button kind="mark" onClick={() => setCaOpen(true)} testId="ca-open">
-              RAISE CORRECTIVE ACTION
+              Raise corrective action
             </Button>
           </div>
-          {workshop.loading && <LoadingView label="CHECKING THE WORKSHOP QUEUE" />}
+          {workshop.loading && <LoadingView label="Checking the workshop queue" />}
           {workshop.error && <ErrorView message={workshop.error} onRetry={workshop.reload} />}
           {workshop.data && (
             <div style={{ display: "grid", gap: 24 }}>
               <section aria-labelledby="due-h">
-                <h3 id="due-h" className="bf-label">SERVICES DUE — PRE-START HOURS FEED THIS QUEUE</h3>
+                <h3 id="due-h" className="bf-h3">Services due — pre-start hours feed this queue</h3>
                 {workshop.data.due_services.length === 0 ? (
-                  <EmptyView title="NOTHING DUE" hint="Every machine is inside its service interval." />
+                  <EmptyView title="Nothing due" hint="Every machine is inside its service interval." />
                 ) : (
                   <LedgerTable
                     testId="due-table"
                     rows={workshop.data.due_services}
                     rowKey={(d) => d.plan_id}
-                    empty="NOTHING DUE"
+                    empty="Nothing due"
                     columns={[
-                      { key: "unit", label: "UNIT", render: (d) => <span className="bf-mono">{d.meta.code ?? "—"}</span> },
-                      { key: "asset", label: "ASSET", render: (d) => d.asset_name },
-                      { key: "plan", label: "SERVICE", render: (d) => d.plan_name },
-                      { key: "meter", label: "METER", align: "right", render: (d) => `${Number(d.meter_hours).toFixed(0)} h` },
-                      { key: "over", label: "OVER BY", align: "right", render: (d) => <Stamp label={`${Number(d.hours_over).toFixed(0)} h`} tone="bad" /> },
+                      { key: "unit", label: "Unit", render: (d) => <span className="bf-mono">{d.meta.code ?? "—"}</span> },
+                      { key: "asset", label: "Asset", render: (d) => d.asset_name },
+                      { key: "plan", label: "Service", render: (d) => d.plan_name },
+                      { key: "meter", label: "Meter", align: "right", render: (d) => `${Number(d.meter_hours).toFixed(0)} h` },
+                      { key: "over", label: "Over by", align: "right", render: (d) => <Stamp label={`${Number(d.hours_over).toFixed(0)} h`} tone="bad" /> },
                       {
                         key: "act",
                         label: "",
@@ -314,7 +304,7 @@ export default function Fleet() {
                             onClick={() => setServicing({ plan_id: d.plan_id, label: `${d.asset_name} — ${d.plan_name}` })}
                             testId={`service-${d.meta.code ?? d.plan_id}`}
                           >
-                            COMPLETE SERVICE
+                            Complete service
                           </Button>
                         ),
                       },
@@ -323,9 +313,9 @@ export default function Fleet() {
                 )}
               </section>
               <section aria-labelledby="ca-h">
-                <h3 id="ca-h" className="bf-label">OPEN CORRECTIVE ACTIONS</h3>
+                <h3 id="ca-h" className="bf-h3">Open corrective actions</h3>
                 {workshop.data.open_corrective_actions.length === 0 ? (
-                  <EmptyView title="NONE OPEN" hint="Failed pre-starts and audits raise these." />
+                  <EmptyView title="None open" hint="Failed pre-starts and audits raise these." />
                 ) : (
                   <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
                     {workshop.data.open_corrective_actions.map((ca) => (
@@ -338,7 +328,7 @@ export default function Fleet() {
                           </span>
                         </span>
                         <Button kind="accent" disabled={act.busy} onClick={() => setClosing(ca)} testId={`close-${ca.code}`}>
-                          CLOSE OUT
+                          Close out
                         </Button>
                       </li>
                     ))}
@@ -354,27 +344,27 @@ export default function Fleet() {
         <>
           <div style={{ marginBottom: 12 }}>
             <Button kind="mark" onClick={() => setFloatOpen(true)} testId="float-open">
-              BOOK FLOAT
+              Book float
             </Button>
           </div>
-          {floats.loading && <LoadingView label="PULLING FLOATS" />}
+          {floats.loading && <LoadingView label="Pulling floats" />}
           {floats.error && <ErrorView message={floats.error} onRetry={floats.reload} />}
-          {floats.data && floats.data.length === 0 && <EmptyView title="NO FLOATS BOOKED" hint="Mobilisation charges start here, not on a sticky note." />}
+          {floats.data && floats.data.length === 0 && <EmptyView title="No floats booked" hint="Mobilisation charges start here, not on a sticky note." />}
           {floats.data && floats.data.length > 0 && (
             <LedgerTable<FloatRow>
               testId="floats-table"
               rows={floats.data}
               rowKey={(f) => f.id}
-              empty="NO FLOATS"
+              empty="No floats"
               columns={[
-                { key: "code", label: "FLOAT", render: (f) => <span className="bf-mono">{f.code}</span> },
-                { key: "asset", label: "ASSET", render: (f) => f.asset_name },
-                { key: "route", label: "ROUTE", render: (f) => `${f.from_yard} → ${f.to_site}` },
-                { key: "date", label: "DATE", render: (f) => new Date(f.float_date).toLocaleDateString("en-AU") },
+                { key: "code", label: "Float", render: (f) => <span className="bf-mono">{f.code}</span> },
+                { key: "asset", label: "Asset", render: (f) => f.asset_name },
+                { key: "route", label: "Route", render: (f) => `${f.from_yard} → ${f.to_site}` },
+                { key: "date", label: "Date", render: (f) => new Date(f.float_date).toLocaleDateString("en-AU") },
                 { key: "job", label: "JOB", render: (f) => <span className="bf-mono">{f.job_code ?? "—"}</span> },
                 { key: "km", label: "KM", align: "right", render: (f) => Number(f.km).toFixed(0) },
-                { key: "charge", label: "CHARGE EX", align: "right", render: (f) => money(f.charge_cents) },
-                { key: "status", label: "STATUS", render: (f) => <Stamp label={f.status.toUpperCase()} tone={FLOAT_TONE[f.status]} /> },
+                { key: "charge", label: "Charge ex", align: "right", render: (f) => money(f.charge_cents) },
+                { key: "status", label: "Status", render: (f) => <Stamp label={f.status.toUpperCase()} tone={FLOAT_TONE[f.status]} /> },
                 {
                   key: "act",
                   label: "",
@@ -382,7 +372,7 @@ export default function Fleet() {
                   render: (f) =>
                     f.status === "planned" ? (
                       <Button kind="accent" disabled={act.busy} onClick={() => completeFloat(f.id)} testId={`float-done-${f.code}`}>
-                        MARK DELIVERED
+                        Mark delivered
                       </Button>
                     ) : (
                       <span className="bf-mono" style={{ fontSize: 12, color: "var(--ink-mute)" }}>—</span>
@@ -398,42 +388,30 @@ export default function Fleet() {
         <>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12, alignItems: "center" }}>
             <Button kind="mark" onClick={() => setEvOpen(true)} testId="evidence-open">
-              ADD EVIDENCE
+              Add evidence
             </Button>
             <a className="bf-label" href="/api/fleet/evidence/pack.pdf" target="_blank" rel="noreferrer" data-testid="sms-pack">
-              SMS PACK ↗
+              SMS pack ↗
             </a>
           </div>
-          {vault.loading && <LoadingView label="OPENING THE VAULT" />}
+          {vault.loading && <LoadingView label="Opening the vault" />}
           {vault.error && <ErrorView message={vault.error} onRetry={vault.reload} />}
           {vault.data && (
             <>
-              <div role="tablist" aria-label="SMS outcome" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
-                {[["", "ALL"] as [string, string], ...Object.entries(vault.data.outcomes)].map(([key, label]) => (
-                  <button
+              <div role="tablist" aria-label="SMS outcome" className="bf-chip-row" style={{ marginBottom: 14 }}>
+                {[["", "All"] as [string, string], ...Object.entries(vault.data.outcomes)].map(([key, label]) => (
+                  <Chip
                     key={key || "all"}
                     role="tab"
-                    aria-selected={outcome === key}
-                    data-testid={`outcome-${key || "all"}`}
-                    className="bf-label"
+                    testId={`outcome-${key || "all"}`}
+                    active={outcome === key}
                     onClick={() => setOutcome(key)}
-                    style={{
-                      padding: "8px 12px",
-                      minHeight: "var(--tap-min)",
-                      cursor: "pointer",
-                      background: outcome === key ? "var(--mark)" : "var(--ground-raise)",
-                      color: outcome === key ? "var(--mark-ink)" : "var(--ink-mute)",
-                      border: "1px solid var(--rule-strong)",
-                      borderRadius: "var(--radius)",
-                    }}
-                  >
-                    {label.toUpperCase()}
-                    {key ? ` (${vault.data?.counts[key] ?? 0})` : ""}
-                  </button>
+                    label={`${label}${key ? ` (${vault.data?.counts[key] ?? 0})` : ""}`}
+                  />
                 ))}
               </div>
               {vault.data.items.length === 0 ? (
-                <EmptyView title="NO EVIDENCE YET" hint="Pre-starts, services and corrective actions land here as they happen." />
+                <EmptyView title="No evidence yet" hint="Pre-starts, services and corrective actions land here as they happen." />
               ) : (
                 <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
                   {vault.data.items.map((i, idx) => (
@@ -451,22 +429,22 @@ export default function Fleet() {
         </>
       )}
 
-      <Sheet title="ADD TO REGISTER" open={assetOpen} onClose={() => setAssetOpen(false)} testId="asset-sheet">
-        <Field label="UNIT CODE" value={aCode} onChange={setACode} placeholder="e.g. PM-02" required testId="asset-code" />
-        <Field label="NAME" value={aName} onChange={setAName} placeholder="e.g. Kenworth T610" required testId="asset-name" />
+      <Sheet title="Add to register" open={assetOpen} onClose={() => setAssetOpen(false)} testId="asset-sheet">
+        <Field label="Unit code" value={aCode} onChange={setACode} placeholder="e.g. PM-02" required testId="asset-code" />
+        <Field label="Name" value={aName} onChange={setAName} placeholder="e.g. Kenworth T610" required testId="asset-name" />
         <label className="bf-label" style={{ display: "block", marginBottom: 12 }}>
-          KIND
+          Kind
           <select data-testid="asset-kind" value={aKind} onChange={(e) => setAKind(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4 }}>
             {["truck", "trailer", "excavator", "loader", "roller", "attachment", "ute", "other"].map((k) => (
               <option key={k} value={k}>{k.toUpperCase()}</option>
             ))}
           </select>
         </label>
-        <Field label="REGO" value={aRego} onChange={setARego} testId="asset-rego" />
-        <Field label="DEPOT" value={aYard} onChange={setAYard} placeholder="e.g. Bunbury Depot" testId="asset-yard" />
+        <Field label="Rego" value={aRego} onChange={setARego} testId="asset-rego" />
+        <Field label="Depot" value={aYard} onChange={setAYard} placeholder="e.g. Bunbury Depot" testId="asset-yard" />
         {act.error && <ErrorView message={act.error} />}
         <Button kind="mark" full disabled={act.busy || !aCode.trim() || !aName.trim()} onClick={addAsset} testId="asset-submit">
-          {act.busy ? "ADDING…" : "ADD ASSET"}
+          {act.busy ? "Adding…" : "Add asset"}
         </Button>
       </Sheet>
 
@@ -476,18 +454,18 @@ export default function Fleet() {
             <p className="bf-mono" style={{ marginTop: 0, fontSize: 13, color: "var(--ink-mute)" }}>
               Logs the service at the current meter and resets the interval clock.
             </p>
-            <Field label="WORK DONE" value={serviceNotes} onChange={setServiceNotes} placeholder="Oil, filters, greased driveline" testId="service-notes" />
+            <Field label="Work done" value={serviceNotes} onChange={setServiceNotes} placeholder="Oil, filters, greased driveline" testId="service-notes" />
             {act.error && <ErrorView message={act.error} />}
             <Button kind="mark" full disabled={act.busy} onClick={completeService} testId="service-submit">
-              {act.busy ? "LOGGING…" : "LOG SERVICE"}
+              {act.busy ? "Logging…" : "Log service"}
             </Button>
           </div>
         )}
       </Sheet>
 
-      <Sheet title="RAISE CORRECTIVE ACTION" open={caOpen} onClose={() => setCaOpen(false)} testId="ca-sheet">
-        <Field label="WHAT NEEDS FIXING" value={caTitle} onChange={setCaTitle} required testId="ca-title" />
-        <Field label="DETAIL (OPTIONAL)" value={caDetail} onChange={setCaDetail} testId="ca-detail" />
+      <Sheet title="Raise corrective action" open={caOpen} onClose={() => setCaOpen(false)} testId="ca-sheet">
+        <Field label="What needs fixing" value={caTitle} onChange={setCaTitle} required testId="ca-title" />
+        <Field label="Detail (optional)" value={caDetail} onChange={setCaDetail} testId="ca-detail" />
         <label className="bf-label" style={{ display: "block", marginBottom: 12 }}>
           SOURCE
           <select data-testid="ca-source" value={caSource} onChange={(e) => setCaSource(e.target.value as CorrectiveActionRow["source"])} style={{ display: "block", width: "100%", marginTop: 4 }}>
@@ -496,45 +474,45 @@ export default function Fleet() {
             ))}
           </select>
         </label>
-        <AssetSelect label="MACHINE (OPTIONAL)" assets={allAssets.data ?? []} value={caAsset} onChange={setCaAsset} testId="ca-asset" />
+        <AssetSelect label="Machine (optional)" assets={allAssets.data ?? []} value={caAsset} onChange={setCaAsset} testId="ca-asset" />
         {act.error && <ErrorView message={act.error} />}
         <Button kind="mark" full disabled={act.busy || !caTitle.trim()} onClick={raiseCa} testId="ca-submit">
-          {act.busy ? "RAISING…" : "RAISE IT"}
+          {act.busy ? "Raising…" : "Raise it"}
         </Button>
       </Sheet>
 
-      <Sheet title={closing ? `CLOSE OUT — ${closing.code}` : ""} open={closing !== null} onClose={() => setClosing(null)} testId="ca-close-sheet">
+      <Sheet title={closing ? `Close out — ${closing.code}` : ""} open={closing !== null} onClose={() => setClosing(null)} testId="ca-close-sheet">
         {closing && (
           <div>
             <p style={{ marginTop: 0, fontSize: 14 }}>{closing.title}</p>
-            <Field label="WHAT WAS DONE (GOES IN THE SMS EVIDENCE)" value={closeNote} onChange={setCloseNote} required testId="ca-close-note" />
+            <Field label="What was done (goes in the SMS evidence)" value={closeNote} onChange={setCloseNote} required testId="ca-close-note" />
             {act.error && <ErrorView message={act.error} />}
             <Button kind="mark" full disabled={act.busy || !closeNote.trim()} onClick={closeCa} testId="ca-close-submit">
-              {act.busy ? "CLOSING…" : "CLOSE OUT"}
+              {act.busy ? "Closing…" : "Close out"}
             </Button>
           </div>
         )}
       </Sheet>
 
-      <Sheet title="BOOK FLOAT" open={floatOpen} onClose={() => setFloatOpen(false)} testId="float-sheet">
-        <AssetSelect label="ASSET" assets={allAssets.data ?? []} value={fAsset} onChange={setFAsset} testId="float-asset" />
-        <JobSelect label="CHARGE TO JOB (OPTIONAL)" value={fJob} onChange={setFJob} allowNone testId="float-job" />
-        <Field label="FROM DEPOT" value={fFrom} onChange={setFFrom} required testId="float-from" />
-        <Field label="TO SITE" value={fTo} onChange={setFTo} required testId="float-to" />
-        <Field label="DATE" type="date" value={fDate} onChange={setFDate} required testId="float-date" />
-        <Field label="KM" type="number" value={fKm} onChange={setFKm} testId="float-km" />
-        <Field label="MOBILISATION ($ ex GST)" type="number" value={fMob} onChange={setFMob} testId="float-mob" />
-        <Field label="RATE ($/km ex GST)" type="number" value={fPerKm} onChange={setFPerKm} testId="float-perkm" />
+      <Sheet title="Book float" open={floatOpen} onClose={() => setFloatOpen(false)} testId="float-sheet">
+        <AssetSelect label="Asset" assets={allAssets.data ?? []} value={fAsset} onChange={setFAsset} testId="float-asset" />
+        <JobSelect label="Charge to job (optional)" value={fJob} onChange={setFJob} allowNone testId="float-job" />
+        <Field label="From depot" value={fFrom} onChange={setFFrom} required testId="float-from" />
+        <Field label="To site" value={fTo} onChange={setFTo} required testId="float-to" />
+        <Field label="Date" type="date" value={fDate} onChange={setFDate} required testId="float-date" />
+        <Field label="Km" type="number" value={fKm} onChange={setFKm} testId="float-km" />
+        <Field label="Mobilisation ($ ex GST)" type="number" value={fMob} onChange={setFMob} testId="float-mob" />
+        <Field label="Rate ($/km ex GST)" type="number" value={fPerKm} onChange={setFPerKm} testId="float-perkm" />
         <p className="bf-num" data-testid="float-preview" style={{ fontSize: 15, margin: "0 0 14px" }}>
           CHARGE: {money(floatPreview)}
         </p>
         {act.error && <ErrorView message={act.error} />}
         <Button kind="mark" full disabled={act.busy || !fAsset || !fFrom.trim() || !fTo.trim() || !fDate} onClick={bookFloat} testId="float-submit">
-          {act.busy ? "BOOKING…" : "BOOK FLOAT"}
+          {act.busy ? "Booking…" : "Book float"}
         </Button>
       </Sheet>
 
-      <Sheet title="ADD SMS EVIDENCE" open={evOpen} onClose={() => setEvOpen(false)} testId="evidence-sheet">
+      <Sheet title="Add SMS evidence" open={evOpen} onClose={() => setEvOpen(false)} testId="evidence-sheet">
         <label className="bf-label" style={{ display: "block", marginBottom: 12 }}>
           OUTCOME
           <select data-testid="evidence-outcome" value={evOutcome} onChange={(e) => setEvOutcome(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4 }}>
@@ -543,11 +521,11 @@ export default function Fleet() {
             ))}
           </select>
         </label>
-        <Field label="KIND" value={evKind} onChange={setEvKind} placeholder="e.g. policy_signoff, training, review" required testId="evidence-kind" />
-        <Field label="SUMMARY" value={evSummary} onChange={setEvSummary} required testId="evidence-summary" />
+        <Field label="Kind" value={evKind} onChange={setEvKind} placeholder="e.g. policy_signoff, training, review" required testId="evidence-kind" />
+        <Field label="Summary" value={evSummary} onChange={setEvSummary} required testId="evidence-summary" />
         {act.error && <ErrorView message={act.error} />}
         <Button kind="mark" full disabled={act.busy || !evKind.trim() || !evSummary.trim()} onClick={addEvidence} testId="evidence-submit">
-          {act.busy ? "FILING…" : "FILE EVIDENCE"}
+          {act.busy ? "Filing…" : "File evidence"}
         </Button>
       </Sheet>
     </div>

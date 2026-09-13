@@ -84,14 +84,17 @@ async def chase_list(u=Depends(auth.staff)):
     org = await get_org(u["org_id"])
     await ledger.pull_invoice_statuses(org)
     uninvoiced = await db.fetch(
-        """SELECT j.id, j.code, j.title, j.quoted_cents, j.completed_at FROM jobs j
+        """SELECT j.id, j.code, j.title, j.quoted_cents, j.completed_at, c.name AS client_name FROM jobs j
+           LEFT JOIN clients c ON c.id=j.client_id
            WHERE j.org_id=$1 AND j.status='done'
              AND NOT EXISTS (SELECT 1 FROM invoices i WHERE i.job_id=j.id AND i.kind IN ('invoice','claim'))
            ORDER BY j.completed_at""",
         u["org_id"],
     )
     overdue = await db.fetch(
-        "SELECT i.*, j.code AS job_code FROM invoices i LEFT JOIN jobs j ON j.id=i.job_id WHERE i.org_id=$1 AND i.status='overdue' ORDER BY i.due_on",
+        """SELECT i.*, j.code AS job_code, j.title AS job_title, c.name AS client_name FROM invoices i
+           LEFT JOIN jobs j ON j.id=i.job_id LEFT JOIN clients c ON c.id=j.client_id
+           WHERE i.org_id=$1 AND i.status='overdue' ORDER BY i.due_on""",
         u["org_id"],
     )
     on_table = sum(x["quoted_cents"] for x in uninvoiced) + sum(x["total_ex_cents"] for x in overdue)

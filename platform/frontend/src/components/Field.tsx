@@ -13,8 +13,8 @@ export interface FieldProps {
 
 export default function Field({ label, value, onChange, type = "text", placeholder, required, testId }: FieldProps) {
   return (
-    <label style={{ display: "block", marginBottom: 12 }}>
-      <span className="bf-label" style={{ display: "block", marginBottom: 4 }}>
+    <label className="bf-field">
+      <span className="bf-label">
         {label}
         {required ? " *" : ""}
       </span>
@@ -25,7 +25,6 @@ export default function Field({ label, value, onChange, type = "text", placehold
         required={required}
         placeholder={placeholder}
         onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
-        style={{ width: "100%" }}
       />
     </label>
   );

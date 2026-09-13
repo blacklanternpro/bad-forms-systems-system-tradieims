@@ -19,7 +19,7 @@ export default function Notifications() {
   const notes = useLoad(() => api<NotificationRow[]>("/notifications"));
   const act = useAction();
 
-  if (notes.loading) return <LoadingView label="CHECKING THE BELL" />;
+  if (notes.loading) return <LoadingView label="Checking alerts" />;
   if (notes.error) return <ErrorView message={notes.error} onRetry={notes.reload} />;
 
   const items = notes.data ?? [];
@@ -27,7 +27,9 @@ export default function Notifications() {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-        <h2 className="bf-label" style={{ margin: 0 }}>NOTIFICATIONS</h2>
+        <h2 className="bf-h2" style={{ margin: 0, fontSize: 20 }}>
+          Alerts
+        </h2>
         {items.length > 0 && (
           <span style={{ marginLeft: "auto" }}>
             <Button
@@ -41,14 +43,14 @@ export default function Notifications() {
                 })
               }
             >
-              MARK ALL READ
+              Mark all read
             </Button>
           </span>
         )}
       </div>
       {act.error && <ErrorView message={act.error} />}
       {items.length === 0 ? (
-        <EmptyView title="NOTHING RINGING" hint="You're across everything. New events land here." />
+        <EmptyView title="Nothing waiting" hint="You're across everything. New events land here." />
       ) : (
         <div style={{ display: "grid", gap: 10 }}>
           {items.map((n) => (

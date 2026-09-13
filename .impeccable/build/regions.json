@@ -1,0 +1,455 @@
+{
+  "regions": [
+    {
+      "id": "masthead",
+      "kind": "chrome",
+      "grid": "A0:J0",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.10281111111111112
+      },
+      "snap": false,
+      "container": true,
+      "note": "top bar: white strip on the neutral ground closed by a hairline rule; holds the wordmark, status pill and tools",
+      "codeDrawn": true
+    },
+    {
+      "id": "wordmark",
+      "kind": "text",
+      "box": {
+        "x": 0.016375,
+        "y": 0.019444444444444445,
+        "w": 0.17425000000000002,
+        "h": 0.055511111111111115
+      },
+      "note": "typeset wordmark BAD FORM Systems, medium weight sans (the small glyph left of it is a defect: wordmark only)",
+      "grid": "A0:B0",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "desk-status",
+      "kind": "control",
+      "box": {
+        "x": 0.21957500000000002,
+        "y": 0.020844444444444443,
+        "w": 0.09065000000000001,
+        "h": 0.052811111111111114
+      },
+      "note": "outlined pill 'Desk \u00b7 busy', hairline border, muted text",
+      "grid": "C0:D0",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "mast-tools",
+      "kind": "chrome",
+      "box": {
+        "x": 0.789875,
+        "y": 0.015244444444444442,
+        "w": 0.19375,
+        "h": 0.06391111111111111
+      },
+      "note": "search icon, \u2318K shortcut pill, bell icon, initials avatar 'OP' \u2014 small line icons and hairline pills",
+      "grid": "H0:J0",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "page-title",
+      "kind": "text",
+      "box": {
+        "x": 0.017975,
+        "y": 0.10834444444444445,
+        "w": 0.41345,
+        "h": 0.05831111111111111
+      },
+      "note": "page title 'The morning ledger \u2014 Thursday 12 Sep 2026', single line, medium weight, tight tracking",
+      "grid": "A1:E1",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "triage-heading",
+      "kind": "text",
+      "box": {
+        "x": 0.017975,
+        "y": 0.17914444444444444,
+        "w": 0.06875,
+        "h": 0.03331111111111111
+      },
+      "note": "column heading 'Triage' with a small accent dot at left, tracked small caps label",
+      "grid": "A1:A2",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "money-heading",
+      "kind": "text",
+      "box": {
+        "x": 0.340675,
+        "y": 0.17914444444444444,
+        "w": 0.16345,
+        "h": 0.03331111111111111
+      },
+      "note": "column heading 'Money on the table' with accent dot",
+      "grid": "D1:F2",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "dispatch-heading",
+      "kind": "text",
+      "box": {
+        "x": 0.668775,
+        "y": 0.17914444444444444,
+        "w": 0.08435000000000001,
+        "h": 0.03331111111111111
+      },
+      "note": "column heading 'Dispatch' with accent dot",
+      "grid": "G1:H2",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "divider-1",
+      "kind": "chrome",
+      "box": {
+        "x": 0.321875,
+        "y": 0.17504444444444445,
+        "w": 0.025,
+        "h": 0.7750111111111111
+      },
+      "snap": false,
+      "note": "hairline vertical rule between triage and money columns",
+      "grid": "D1:D9",
+      "codeDrawn": true
+    },
+    {
+      "id": "divider-2",
+      "kind": "chrome",
+      "box": {
+        "x": 0.6484375,
+        "y": 0.17504444444444445,
+        "w": 0.025,
+        "h": 0.7750111111111111
+      },
+      "snap": false,
+      "note": "hairline vertical rule between money and dispatch columns",
+      "grid": "G1:G9",
+      "codeDrawn": true
+    },
+    {
+      "id": "triage-review",
+      "kind": "control",
+      "box": {
+        "x": 0.017975,
+        "y": 0.23754444444444445,
+        "w": 0.29685,
+        "h": 0.1778111111111111
+      },
+      "note": "white card, hairline border: inbox line icon, title '3 captures waiting review', muted subline 'New photos, notes and voice captures', right chevron",
+      "grid": "A2:D4",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "triage-recall",
+      "kind": "control",
+      "box": {
+        "x": 0.017975,
+        "y": 0.43194444444444446,
+        "w": 0.29685,
+        "h": 0.1778111111111111
+      },
+      "note": "white card: recall line icon, title 'Recall alert', subline 'HVAC-1187 \u00b7 Warehouse unit 7', outlined accent chip 'RECALL' at right",
+      "grid": "A4:D6",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "triage-licence",
+      "kind": "control",
+      "box": {
+        "x": 0.017975,
+        "y": 0.6263444444444445,
+        "w": 0.29685,
+        "h": 0.1778111111111111
+      },
+      "note": "white card: licence line icon, title 'Licence expiry', subline 'Driver licence \u00b7 J. Nguyen', outlined accent chip '7 DAYS' at right",
+      "grid": "A6:D7",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "triage-link",
+      "kind": "text",
+      "box": {
+        "x": 0.015975,
+        "y": 0.9000444444444444,
+        "w": 0.10215,
+        "h": 0.05171111111111111
+      },
+      "note": "accent text link 'View all triage \u2192'",
+      "grid": "A9:B9",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "money-card",
+      "kind": "chrome",
+      "box": {
+        "x": 0.340675,
+        "y": 0.21944444444444444,
+        "w": 0.30074999999999996,
+        "h": 0.691711111111111
+      },
+      "snap": false,
+      "container": true,
+      "note": "one tall white card with hairline border holding the money column content",
+      "grid": "D2:G9",
+      "codeDrawn": true
+    },
+    {
+      "id": "total-label",
+      "kind": "text",
+      "box": {
+        "x": 0.353875,
+        "y": 0.24164444444444444,
+        "w": 0.10005,
+        "h": 0.030511111111111114
+      },
+      "note": "tracked uppercase label 'TOTAL ON THE TABLE', muted",
+      "grid": "D2:E2",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "total-amount",
+      "kind": "text",
+      "box": {
+        "x": 0.353875,
+        "y": 0.2680444444444445,
+        "w": 0.17815,
+        "h": 0.08051111111111112
+      },
+      "note": "large amount '$42,850.00', tabular numerals, semibold, ink",
+      "grid": "D2:F3",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "progress-rule",
+      "kind": "chrome",
+      "box": {
+        "x": 0.353875,
+        "y": 0.34444444444444444,
+        "w": 0.27344999999999997,
+        "h": 0.01941111111111111
+      },
+      "snap": false,
+      "note": "thin progress rule, accent fill on the left fifth, hairline grey remainder",
+      "grid": "D3:G3",
+      "codeDrawn": true
+    },
+    {
+      "id": "count-line",
+      "kind": "text",
+      "box": {
+        "x": 0.353875,
+        "y": 0.36384444444444447,
+        "w": 0.15465,
+        "h": 0.03191111111111111
+      },
+      "note": "muted small line '12 jobs \u00b7 $42,850.00 uninvoiced'",
+      "grid": "D3:F3",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "uninvoiced-heading",
+      "kind": "text",
+      "box": {
+        "x": 0.353875,
+        "y": 0.41804444444444444,
+        "w": 0.10395,
+        "h": 0.03191111111111111
+      },
+      "note": "tracked uppercase list heading 'UNINVOICED JOBS'",
+      "grid": "D4:E4",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "uninvoiced-count",
+      "kind": "text",
+      "box": {
+        "x": 0.586675,
+        "y": 0.41804444444444444,
+        "w": 0.04145,
+        "h": 0.03191111111111111
+      },
+      "note": "right-aligned muted count '4 jobs'",
+      "grid": "F4:G4",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "uninvoiced-rows",
+      "kind": "control",
+      "box": {
+        "x": 0.353875,
+        "y": 0.44864444444444446,
+        "w": 0.28145,
+        "h": 0.2361111111111111
+      },
+      "note": "four rows: job code bold with muted subline, right-aligned tabular amount, and a small dark filled 'Draft invoice' button per row, rows separated by hairlines",
+      "grid": "D4:G6",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "overdue-heading",
+      "kind": "text",
+      "box": {
+        "x": 0.353875,
+        "y": 0.6986444444444445,
+        "w": 0.10785,
+        "h": 0.03191111111111111
+      },
+      "note": "tracked uppercase list heading 'OVERDUE INVOICES'",
+      "grid": "D7:E7",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "overdue-count",
+      "kind": "text",
+      "box": {
+        "x": 0.5749749999999999,
+        "y": 0.6986444444444445,
+        "w": 0.053149999999999996,
+        "h": 0.03191111111111111
+      },
+      "note": "right-aligned muted count '3 invoices'",
+      "grid": "F7:G7",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "overdue-rows",
+      "kind": "control",
+      "box": {
+        "x": 0.353875,
+        "y": 0.7333444444444445,
+        "w": 0.28145,
+        "h": 0.1611111111111111
+      },
+      "note": "three rows: amber status dot, invoice code with muted subline 'Client \u00b7 Due N days ago', right-aligned tabular amount",
+      "grid": "D7:G8",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "money-link",
+      "kind": "text",
+      "box": {
+        "x": 0.340675,
+        "y": 0.9111444444444444,
+        "w": 0.16685,
+        "h": 0.048911111111111114
+      },
+      "note": "accent text link 'View all invoices and jobs \u2192'",
+      "grid": "D9:F9",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "dispatch-card",
+      "kind": "chrome",
+      "box": {
+        "x": 0.668775,
+        "y": 0.21944444444444444,
+        "w": 0.30705,
+        "h": 0.563911111111111
+      },
+      "snap": false,
+      "container": true,
+      "note": "white card with hairline border holding the crew allocation",
+      "grid": "G2:J7",
+      "codeDrawn": true
+    },
+    {
+      "id": "dispatch-title",
+      "kind": "text",
+      "box": {
+        "x": 0.6804749999999999,
+        "y": 0.24444444444444444,
+        "w": 0.15075,
+        "h": 0.03891111111111111
+      },
+      "note": "card title 'Today's crew allocation', medium weight",
+      "grid": "G2:I2",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "dispatch-date",
+      "kind": "text",
+      "box": {
+        "x": 0.6804749999999999,
+        "y": 0.27634444444444445,
+        "w": 0.11565,
+        "h": 0.030511111111111114
+      },
+      "note": "muted date subline 'Thursday 12 Sep 2026'",
+      "grid": "G2:H2",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "crew-rows",
+      "kind": "control",
+      "box": {
+        "x": 0.6804749999999999,
+        "y": 0.32504444444444447,
+        "w": 0.28354999999999997,
+        "h": 0.43891111111111114
+      },
+      "note": "five crew rows: grey circle with initials, name bold with muted role, right-hand outlined job chip with small van icon and 'JOB-2417 \u00b7 Bayside Fitout'",
+      "grid": "G3:J7",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "print-button",
+      "kind": "control",
+      "box": {
+        "x": 0.668775,
+        "y": 0.7972444444444444,
+        "w": 0.30705,
+        "h": 0.07361111111111111
+      },
+      "note": "full-width outline button 'Print day sheet' with a small printer icon, white fill, hairline border",
+      "grid": "G8:J8",
+      "codeDrawn": true,
+      "snap": false
+    },
+    {
+      "id": "dispatch-link",
+      "kind": "text",
+      "box": {
+        "x": 0.668775,
+        "y": 0.9069444444444444,
+        "w": 0.15905,
+        "h": 0.048911111111111114
+      },
+      "note": "accent text link 'View full dispatch board \u2192'",
+      "grid": "G9:I9",
+      "codeDrawn": true,
+      "snap": false
+    }
+  ]
+}

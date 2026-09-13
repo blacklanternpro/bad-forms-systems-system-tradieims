@@ -9,6 +9,7 @@ import {
   type Session,
 } from "../api";
 import Button from "../components/Button";
+import { Chip } from "../components/Chrome";
 import Field from "../components/Field";
 import LedgerTable from "../components/LedgerTable";
 import Sheet from "../components/Sheet";
@@ -19,7 +20,7 @@ import { useAction, useLoad } from "../hooks";
 const KEY_STORE = "bf_staff_key";
 type Tab = "instances" | "foundry" | "import";
 
-const TAB_LABELS: Record<Tab, string> = { instances: "INSTANCES", foundry: "THE FOUNDRY", import: "IMPORTERS" };
+const TAB_LABELS: Record<Tab, string> = { instances: "Instances", foundry: "Foundry", import: "Importers" };
 
 interface KeyGateProps {
   onUnlocked: (key: string) => void;
@@ -47,12 +48,12 @@ function KeyGate({ onUnlocked }: KeyGateProps) {
   return (
     <div className="bf-page" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 380 }}>
-        <h1 className="bf-h1" style={{ fontSize: 20, marginBottom: 4 }}>BAD FORM SYSTEMS</h1>
-        <p className="bf-label" style={{ marginBottom: 20 }}>PLATFORM CONSOLE — STAFF ONLY</p>
-        <Field label="STAFF KEY" type="password" value={key} onChange={setKey} required testId="staff-key" />
+        <h1 className="bf-h1" style={{ fontSize: 20, marginBottom: 4 }}>BAD FORM Systems</h1>
+        <p className="bf-label" style={{ marginBottom: 20 }}>Platform console — staff only</p>
+        <Field label="Staff key" type="password" value={key} onChange={setKey} required testId="staff-key" />
         {error && <ErrorView message={error} />}
         <Button kind="mark" full disabled={busy || !key.trim()} onClick={() => void unlock()} testId="staff-unlock">
-          {busy ? "CHECKING…" : "UNLOCK"}
+          {busy ? "Checking…" : "Unlock"}
         </Button>
       </div>
     </div>
@@ -154,58 +155,47 @@ function ConsoleBody({ staffKey, onLock }: ConsoleBodyProps) {
 
   return (
     <div className="bf-page">
-      <header style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "8px 20px", borderBottom: "2px solid var(--ink)", paddingBottom: 12 }}>
-        <h1 className="bf-h1" style={{ fontSize: 20 }}>PLATFORM CONSOLE</h1>
-        <span className="bf-label">BAD FORM STAFF — EVERY ACTION AUDITED</span>
+      <header className="bf-mast" style={{ paddingLeft: 0, paddingRight: 0 }}>
+        <h1 className="bf-wordmark">Platform console</h1>
+        <span className="bf-label">Staff — every action audited</span>
         <button
-          className="bf-label"
+          className="bf-quiet-btn"
           data-testid="console-lock"
           onClick={() => {
             localStorage.removeItem(KEY_STORE);
             onLock();
           }}
-          style={{ marginLeft: "auto", background: "none", border: "1px solid var(--rule-strong)", borderRadius: "var(--radius)", padding: "8px 12px", cursor: "pointer", minHeight: "var(--tap-min)" }}
+          style={{ marginLeft: "auto" }}
         >
-          LOCK
+          Lock
         </button>
       </header>
 
-      <div role="tablist" aria-label="Console" style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "14px 0 18px" }}>
+      <div role="tablist" aria-label="Console" className="bf-chip-row" style={{ margin: "14px 0 18px" }}>
         {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
-          <button
+          <Chip
             key={t}
             role="tab"
-            aria-selected={tab === t}
-            data-testid={`console-tab-${t}`}
-            className="bf-label"
+            testId={`console-tab-${t}`}
+            active={tab === t}
             onClick={() => setTab(t)}
-            style={{
-              padding: "10px 16px",
-              minHeight: "var(--tap-min)",
-              cursor: "pointer",
-              background: tab === t ? "var(--mark)" : "transparent",
-              color: tab === t ? "var(--mark-ink)" : "var(--ink-mute)",
-              border: "1px solid var(--rule-strong)",
-              borderRadius: "var(--radius)",
-            }}
-          >
-            {TAB_LABELS[t]}
-          </button>
+            label={TAB_LABELS[t]}
+          />
         ))}
       </div>
       {act.error && <ErrorView message={act.error} />}
 
       {tab === "instances" && (
         <>
-          {instances.loading && <LoadingView label="PULLING THE FLEET" />}
+          {instances.loading && <LoadingView label="Pulling instances" />}
           {instances.error && <ErrorView message={instances.error} onRetry={instances.reload} />}
-          {instances.data && instances.data.length === 0 && <EmptyView title="NO INSTANCES YET" hint="Build the first one in the Foundry." />}
+          {instances.data && instances.data.length === 0 && <EmptyView title="No instances yet" hint="Build the first one in the Foundry." />}
           {instances.data && instances.data.length > 0 && (
             <LedgerTable<InstanceRow>
               testId="instances-table"
               rows={instances.data}
               rowKey={(i) => i.id}
-              empty="NO INSTANCES"
+              empty="No instances"
               columns={[
                 { key: "slug", label: "INSTANCE", render: (i) => <span className="bf-mono">{i.slug}</span> },
                 { key: "name", label: "CLIENT", render: (i) => i.name },
@@ -256,7 +246,7 @@ function ConsoleBody({ staffKey, onLock }: ConsoleBodyProps) {
       {tab === "foundry" && (
         <div style={{ display: "grid", gap: 28, gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
           <section aria-labelledby="intake-h">
-            <h2 id="intake-h" className="bf-label">1 · CLIENT INTAKE — ENTERED ONCE, IMPRINTED EVERYWHERE</h2>
+            <h2 id="intake-h" className="bf-h3">1 · Client intake — entered once, imprinted everywhere</h2>
             <div style={{ marginTop: 10 }}>
               <Field label="TRADING NAME" value={trading} onChange={setTrading} required testId="foundry-trading" />
               <Field label="LEGAL NAME" value={legal} onChange={setLegal} testId="foundry-legal" />
@@ -282,7 +272,7 @@ function ConsoleBody({ staffKey, onLock }: ConsoleBodyProps) {
           </section>
 
           <section aria-labelledby="menu-h">
-            <h2 id="menu-h" className="bf-label">2 · THE MENU — WHAT THE GALLERY DEMOS IS WHAT GETS TICKED</h2>
+            <h2 id="menu-h" className="bf-h3">2 · The menu — what the gallery demos is what gets ticked</h2>
             {menu.loading && <LoadingView label="OPENING THE CATALOGUE" />}
             {menu.error && <ErrorView message={menu.error} onRetry={menu.reload} />}
             {menu.data && (
